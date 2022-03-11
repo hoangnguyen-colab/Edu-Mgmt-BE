@@ -29,9 +29,7 @@ namespace Edu_Mgmt_BE.Controllers
         [HttpPost("login")]
         public async Task<ServiceResponse> UserLogin(UserLogin userLogin)
         {
-            ServiceResponse res = new ServiceResponse();
-            res.Data = _jwtAuthenticationManager.LoginAuthenticate(_db, userLogin.username, userLogin.password).Data;
-            return res;
+            return _jwtAuthenticationManager.LoginAuthenticate(_db, userLogin.username, userLogin.password);
         }
     }
 }
