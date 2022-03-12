@@ -144,7 +144,9 @@ namespace Edu_Mgmt_BE.Models
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.SchoolYearDate).HasMaxLength(5);
+                entity.Property(e => e.ActiveYear).HasMaxLength(5);
+
+                entity.Property(e => e.SchoolYearDate).HasMaxLength(9);
 
                 entity.Property(e => e.SchoolYearName).HasMaxLength(20);
             });

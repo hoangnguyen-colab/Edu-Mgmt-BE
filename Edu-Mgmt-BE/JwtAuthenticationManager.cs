@@ -12,6 +12,7 @@ using System.Security.Claims;
 using System.Text;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
+using System.Threading.Tasks;
 
 namespace Edu_Mgmt_BE
 {
@@ -23,13 +24,15 @@ namespace Edu_Mgmt_BE
             this.key = key;
         }
 
-        public ServiceResponse LoginAuthenticate(EduManagementContext _db, string username, string password)
+        public async Task<ServiceResponse> LoginAuthenticate(EduManagementContext _db, string username, string password)
         {
             ServiceResponse res = new ServiceResponse();
             try
             {
                 string passwordMD5 = Helper.EncodeMD5(password);
-                var accountResult = _db.SystemUser.Where(_ => _.UserUsername == username && _.UserPassword == passwordMD5).FirstOrDefault();
+                var accountResult = await _db.SystemUser
+                    .Where(_ => _.UserUsername == username && _.UserPassword == passwordMD5)
+                    .FirstOrDefaultAsync();
                 if (accountResult == null)
                 {
                     res.Message = Constants.Message.LoginIncorrect;
@@ -40,24 +43,14 @@ namespace Edu_Mgmt_BE
                 }
                 accountResult.UserPassword = null;
                 string sql_get_role = $"select * from SystemRole where RoleId in (select distinct SystemRoleId from UserDetail where SystemUserId = @SystemUserId)";
-                var roles = _db.SystemRole.FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", accountResult.SystemUserId)).ToList();
+                var roles = await _db.SystemRole
+                    .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", accountResult.SystemUserId))
+                    .ToListAsync();
 
                 Dictionary<string, object> result = new Dictionary<string, object>();
                 result.Add("account", accountResult);
                 result.Add("roles", roles);
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var tokenKey = Encoding.ASCII.GetBytes(key);
-                var tokenDesciptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new Claim[]
-                    {
-                    new Claim(ClaimTypes.Name,JsonConvert.SerializeObject(result))
-                    }),
-                    Expires = DateTime.UtcNow.AddDays(2),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
-                };
-                var token = tokenHandler.CreateToken(tokenDesciptor);
-                result.Add("token", tokenHandler.WriteToken(token));
+                result.Add("token", EncodeJWTToken(result));
                 res.Success = true;
                 res.Data = result;
             }
@@ -70,6 +63,23 @@ namespace Edu_Mgmt_BE
                 return res;
             }
             return res;
+        }
+
+        private string EncodeJWTToken(object result)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenKey = Encoding.ASCII.GetBytes(key);
+            var tokenDesciptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name,JsonConvert.SerializeObject(result))
+                }),
+                Expires = DateTime.UtcNow.AddDays(2),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDesciptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

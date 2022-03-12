@@ -17,6 +17,7 @@ namespace Edu_Mgmt_BE.Models
         public Guid SchoolYearId { get; set; }
         public string SchoolYearName { get; set; }
         public string SchoolYearDate { get; set; }
+        public string ActiveYear { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifyDate { get; set; }
         public DateTime? CreatedUser { get; set; }

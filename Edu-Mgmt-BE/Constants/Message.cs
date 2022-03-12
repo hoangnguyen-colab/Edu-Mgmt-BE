@@ -31,8 +31,11 @@ namespace Edu_Mgmt_BE.Constants
         public const string AccountLogChange = "Thay đổi thông tin tài khoản";
         public const string AccountLogPassword = "Thay đổi mật khẩu";
 
-        //Xử lý message sản phẩm
-        public const string ProductEditSuccess = "Thay đổi thông tin sản phẩm thành công";
+        //Xử lý message School Year
+        public const string SchoolYearNameEmpty = "Tên năm/khóa học không thể trống";
+        public const string SchoolYearDateEmpty = "Năm/khóa học không thể trống";
+        public const string SchoolYearExist = "Năm/khóa học đã tồn tại";
+        public const string SchoolYearNotFound = "Không tìm năm học này";
 
         public const string ProductLogChange = "Thay đổi thông tin sản phẩm";
         public const string ProductLogDelete = "Xóa sản phẩm";

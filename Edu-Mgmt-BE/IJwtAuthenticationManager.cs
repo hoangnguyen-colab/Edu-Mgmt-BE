@@ -10,6 +10,6 @@ namespace Edu_Mgmt_BE
 {
     public interface IJwtAuthenticationManager
     {
-        ServiceResponse LoginAuthenticate(EduManagementContext _db, string username, string password);
+        Task<ServiceResponse> LoginAuthenticate(EduManagementContext _db, string username, string password);
     }
 }

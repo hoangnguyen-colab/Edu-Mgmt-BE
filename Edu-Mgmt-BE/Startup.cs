@@ -32,8 +32,17 @@ namespace Edu_Mgmt_BE
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
             });
 
-            services.AddDbContext<EduManagementContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
+            services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Edu Management Swagger",
+                    Description = "Edu Management Swagger APIs",
+                    Version = "v1"
+                });
+            });
+
+            services.AddDbContext<EduManagementContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
             services.AddMemoryCache();
             services.AddCors(options =>
             {
@@ -47,7 +56,8 @@ namespace Edu_Mgmt_BE
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-            }).AddJwtBearer(x => {
+            }).AddJwtBearer(x =>
+            {
                 x.RequireHttpsMetadata = false;
                 x.SaveToken = true;
                 x.TokenValidationParameters = new TokenValidationParameters
@@ -89,6 +99,12 @@ namespace Edu_Mgmt_BE
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Edu Management Swagger");
             });
         }
     }
