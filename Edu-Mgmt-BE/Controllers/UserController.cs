@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Edu_Mgmt_BE.Controllers
@@ -59,11 +60,13 @@ namespace Edu_Mgmt_BE.Controllers
                 pagingData.Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(); //Dữ liệu của từng trang
                 res.Success = true;
                 res.Data = pagingData;
+                res.StatusCode = HttpStatusCode.OK;
                 return res;
             }
             res.Success = false;
             res.Message = Message.NotAuthorize;
-            res.ErrorCode = 403;
+            res.ErrorCode = 401;
+            res.StatusCode = HttpStatusCode.Unauthorized;
             return res;
         }
         
@@ -82,6 +85,7 @@ namespace Edu_Mgmt_BE.Controllers
                 res.Data = null;
                 res.Message = Message.AccountNotFound;
                 res.ErrorCode = 404;
+                res.StatusCode = HttpStatusCode.NotFound;
                 return res;
             }
             account.UserPassword = null;
@@ -96,6 +100,7 @@ namespace Edu_Mgmt_BE.Controllers
 
             res.Data = result;
             res.Success = true;
+            res.StatusCode = HttpStatusCode.OK;
             return res;
         }
 

@@ -13,6 +13,7 @@ using System.Text;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace Edu_Mgmt_BE
 {
@@ -38,7 +39,7 @@ namespace Edu_Mgmt_BE
                     res.Message = Constants.Message.LoginIncorrect;
                     res.Success = true;
                     res.Data = null;
-                    res.ErrorCode = 404;
+                    res.StatusCode = HttpStatusCode.BadRequest;
                     return res;
                 }
                 accountResult.UserPassword = null;
@@ -53,13 +54,14 @@ namespace Edu_Mgmt_BE
                 result.Add("token", EncodeJWTToken(result));
                 res.Success = true;
                 res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 res.Message = Constants.Message.ErrorMsg;
                 res.Success = true;
                 res.Data = null;
-                res.ErrorCode = 404;
+                res.StatusCode = HttpStatusCode.InternalServerError;
                 return res;
             }
             return res;

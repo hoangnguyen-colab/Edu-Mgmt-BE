@@ -31,6 +31,24 @@ namespace Edu_Mgmt_BE.Constants
         public const string AccountLogChange = "Thay đổi thông tin tài khoản";
         public const string AccountLogPassword = "Thay đổi mật khẩu";
 
+        //Xử lý message student
+        public const string StudentNotFound = "Không tìm thấy học sinh này";
+        public const string StudentExist = "Học sinh đã tồn tại";
+
+        //Xử lý message class
+        public const string ClassNotFound = "Không tìm thấy lớp này";
+        public const string ClassExist = "Lớp đã tồn tại";
+        public const string ClassNameEmpty = "Tên lớp không thể trống";
+        public const string ClassIdEmpty = "Mã lớp không thể trống";
+        public const string ClassIdExist = "Mã lớp đã tồn tại";
+
+        //Xử lý message class
+        public const string TeacherNotFound = "Không tìm thấy giáo viên này";
+        public const string TeacherExist = "Giáo viên đã tồn tại";
+        public const string TeacherNameEmpty = "Tên giáo viên không thể trống";
+        public const string TeacherIdEmpty = "Mã giáo viên không thể trống";
+        public const string TeacherIdExist = "Mã giáo viên đã tồn tại";
+
         //Xử lý message School Year
         public const string SchoolYearNameEmpty = "Tên năm/khóa học không thể trống";
         public const string SchoolYearDateEmpty = "Năm/khóa học không thể trống";

@@ -16,26 +16,26 @@ using System.Threading.Tasks;
 namespace Edu_Mgmt_BE.Controllers
 {
     [Authorize]
-    [Route("api/school-year")]
+    [Route("api/class")]
     [ApiController]
-    public class SchoolYearController : ControllerBase
+    public class ClassController : ControllerBase
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
 
-        public SchoolYearController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
+        public ClassController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
         {
             _db = context;
             _jwtAuthenticationManager = jwtAuthenticationManager;
         }
 
         /// <summary>
-        /// Lấy danh sách category có phân trang và cho phép tìm kiếm
+        /// Lấy danh sách lớp có phân trang và cho phép tìm kiếm
         /// </summary>
         /// <returns></returns>
-        /// https://localhost:44335/api/school-year?page=2&record=10&search=21
+        /// https://localhost:44335/api/class?page=2&record=10&search=21
         [HttpGet]
-        public async Task<ServiceResponse> GetCategoriesByPagingAndSearch(
+        public async Task<ServiceResponse> GetClassByPagingAndSearch(
             [FromQuery] string search,
             [FromQuery] int? page = 1,
             [FromQuery] int? record = 10)
@@ -44,18 +44,18 @@ namespace Edu_Mgmt_BE.Controllers
             try
             {
                 var pagingData = new PagingData();
-                List<SchoolYear> records = new List<SchoolYear>();
+                List<Class> records = new List<Class>();
                 //Tổng số bản ghi
                 if (search != null && search.Trim() != "")
                 {
                     //CHARINDEX tìm không phân biệt hoa thường trả về vị trí đầu tiên xuất hiện của chuỗi con
-                    string sql_get_year = "SELECT * FROM SchoolYear WHERE CHARINDEX(@txtSeach, SchoolYearName) > 0 OR CHARINDEX(@txtSeach, SchoolYearDate) > 0";
+                    string sql_get_year = "SELECT * FROM Class WHERE CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
                     var param = new SqlParameter("@txtSeach", search);
-                    records = _db.SchoolYear.FromSqlRaw(sql_get_year, param).OrderByDescending(x => x.SchoolYearName).ToList();
+                    records = _db.Class.FromSqlRaw(sql_get_year, param).OrderByDescending(x => x.CreatedDate).ToList();
                 }
                 else
                 {
-                    records = await _db.SchoolYear.OrderByDescending(x => x.SchoolYearName).ToListAsync();
+                    records = await _db.Class.OrderByDescending(x => x.CreatedDate).ToListAsync();
                 }
                 pagingData.TotalRecord = records.Count(); //Tổng số bản ghi
                 pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value)); //Tổng số trang
@@ -76,12 +76,12 @@ namespace Edu_Mgmt_BE.Controllers
         }
 
         /// <summary>
-        /// Thêm school year
+        /// Thêm lớp
         /// </summary>
-        /// <param name="schoolYear"></param>
+        /// <param name="class"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ServiceResponse> AddSchoolYear(SchoolYear schoolYear)
+        public async Task<ServiceResponse> AddClass(Class classObj)
         {
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin"))
@@ -94,9 +94,9 @@ namespace Edu_Mgmt_BE.Controllers
             }
             try
             {
-                if (string.IsNullOrEmpty(schoolYear.ActiveYear))
+                if (string.IsNullOrEmpty(classObj.ClassName))
                 {
-                    res.Message = Message.SchoolYearDateEmpty;
+                    res.Message = Message.ClassNameEmpty;
                     res.Success = false;
                     res.ErrorCode = 400;
                     res.StatusCode = HttpStatusCode.BadRequest;
@@ -104,10 +104,26 @@ namespace Edu_Mgmt_BE.Controllers
                     return res;
                 }
 
-                var find_year = await _db.SchoolYear.Where(item => item.ActiveYear.Equals(schoolYear.ActiveYear)).FirstOrDefaultAsync();
+                //if (string.IsNullOrEmpty(classObj.ShowClassId))
+                //{
+                //    res.Message = Message.ClassIdEmpty;
+                //    res.Success = false;
+                //    res.ErrorCode = 400;
+                //    res.StatusCode = HttpStatusCode.BadRequest;
+
+                //    return res;
+                //}
+
+                classObj.ClassId = Guid.NewGuid();
+                classObj.ClassName = classObj.ClassName.Trim();
+                classObj.ShowClassId = classObj.ShowClassId.Trim();
+
+                var find_year = await _db.Class
+                    .Where(item => item.ClassName.Equals(classObj.ClassName))
+                    .FirstOrDefaultAsync();
                 if (find_year != null)
                 {
-                    res.Message = Message.SchoolYearExist;
+                    res.Message = Message.ClassExist;
                     res.Success = false;
                     res.ErrorCode = 400;
                     res.StatusCode = HttpStatusCode.BadRequest;
@@ -115,16 +131,11 @@ namespace Edu_Mgmt_BE.Controllers
                     return res;
                 }
 
-                schoolYear.SchoolYearId = Guid.NewGuid();
-                schoolYear.ActiveYear = schoolYear.ActiveYear.Trim();
-                schoolYear.SchoolYearName = "Khóa " + schoolYear.ActiveYear;
-                schoolYear.SchoolYearDate = schoolYear.ActiveYear + "-" + (Int32.Parse(schoolYear.ActiveYear) + 1);
-
-                _db.SchoolYear.Add(schoolYear);
+                _db.Class.Add(classObj);
                 await _db.SaveChangesAsync();
 
                 res.Success = true;
-                res.Data = schoolYear;
+                res.Data = classObj;
                 res.StatusCode = HttpStatusCode.OK;
             }
             catch (Exception)
@@ -138,25 +149,25 @@ namespace Edu_Mgmt_BE.Controllers
         }
 
         /// <summary>
-        /// Detail school year
+        /// Chi tiết lớp
         /// </summary>
-        /// <param name="year"></param>
+        /// <param id="id"></param>
         /// <returns></returns>
         [HttpGet("detail/{id}")]
-        public async Task<ServiceResponse> GetSchoolYearDetail(Guid? id)
+        public async Task<ServiceResponse> GetCLassDetail(Guid? id)
         {
             ServiceResponse res = new ServiceResponse();
-            var year = await _db.SchoolYear.FindAsync(id);
-            if (year == null)
+            var classResult = await _db.Class.FindAsync(id);
+            if (classResult == null)
             {
-                res.Message = Message.SchoolYearNotFound;
+                res.Message = Message.ClassNotFound;
                 res.ErrorCode = 404;
                 res.Success = false;
                 res.Data = null;
                 res.StatusCode = HttpStatusCode.NotFound;
             }
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result.Add("year", year);
+            result.Add("class", classResult);
 
             res.Data = result;
             res.Success = true;
@@ -165,12 +176,12 @@ namespace Edu_Mgmt_BE.Controllers
         }
 
         /// <summary>
-        /// Xoá year
+        /// Xoá lớp
         /// </summary>
         /// <param name="category"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        public async Task<ServiceResponse> DeleteSchoolYear(Guid? id)
+        public async Task<ServiceResponse> DeleteClass(Guid? id)
         {
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin"))
@@ -183,21 +194,23 @@ namespace Edu_Mgmt_BE.Controllers
             }
             try
             {
-                var year = await _db.SchoolYear.FindAsync(id);
-                if (year == null)
+                var classResult = await _db.Class.FindAsync(id);
+                if (classResult == null)
                 {
-                    res.Message = Message.SchoolYearNotFound;
+                    res.Message = Message.ClassNotFound;
                     res.ErrorCode = 404;
                     res.Success = false;
                     res.Data = null;
                     res.StatusCode = HttpStatusCode.NotFound;
                     return res;
                 }
-                _db.SchoolYear.Remove(year);
+
+                _db.Class.Remove(classResult);
+                await _db.SaveChangesAsync();
+
                 res.Success = true;
                 res.Data = null;
                 res.StatusCode = HttpStatusCode.OK;
-                await _db.SaveChangesAsync();
             }
             catch (Exception)
             {

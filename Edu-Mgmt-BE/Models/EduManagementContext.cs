@@ -40,6 +40,8 @@ namespace Edu_Mgmt_BE.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
+
             modelBuilder.Entity<Class>(entity =>
             {
                 entity.HasIndex(e => e.ShowClassId)

@@ -2,6 +2,7 @@ using Edu_Mgmt_BE.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ namespace Edu_Mgmt_BE
             services.AddControllers().AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
 
             services.AddSwaggerGen(options =>
@@ -79,6 +81,9 @@ namespace Edu_Mgmt_BE
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            } else
+            {
+                app.UseHsts();
             }
 
             app.UseHttpsRedirection();
@@ -100,11 +105,16 @@ namespace Edu_Mgmt_BE
             {
                 endpoints.MapControllers();
             });
+            app.UseStaticFiles();
 
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "Edu Management Swagger");
+            });
+            app.Run(async (context) =>
+            {
+                await context.Response.WriteAsync("Could not find anything");
             });
         }
     }

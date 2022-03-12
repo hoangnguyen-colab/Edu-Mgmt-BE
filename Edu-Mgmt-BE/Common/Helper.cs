@@ -1,4 +1,6 @@
-﻿using Edu_Mgmt_BE.Models;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using Edu_Mgmt_BE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +8,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -16,14 +20,29 @@ namespace Edu_Mgmt_BE.Common
     {
         private static readonly EduManagementContext _db = new EduManagementContext();
 
-        /// <summary>
-        /// Check quyền
-        /// </summary>
-        /// <param name="_db"></param>
-        /// <param name="_cache"></param>
-        /// <param name="ip"></param>
-        /// <param name="acction"></param>
-        /// <returns></returns>
+        public static string GenerateTeacherID(int index)
+        {
+            return String.Format("TCR{0}", index.ToString("D4"));
+        }
+
+        public static List<Student> GetStudentListCsv(string fileName)
+        {
+            List<Student> students = new List<Student>();
+
+            var path = $"{Directory.GetCurrentDirectory()}{@"\\Files"}" + "\\" + fileName;
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                PrepareHeaderForMatch = args => args.Header.ToLower(),
+            };
+            using (var reader = new StreamReader(path))
+            using (var csv = new CsvReader(reader, config))
+            {
+                students = csv.GetRecords<Student>().ToList();
+            }
+
+            return students;
+        }
+
         public static bool CheckPermission(HttpContext httpContext, string role_code)
         {
             Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
@@ -64,7 +83,6 @@ namespace Edu_Mgmt_BE.Common
             }
             return result;
         }
-
         public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> input, string queryString)
         {
             if (string.IsNullOrEmpty(queryString))
@@ -93,7 +111,6 @@ namespace Edu_Mgmt_BE.Common
 
             return input;
         }
-       
         private static object GetPropertyValue(object obj, string property)
         {
             System.Reflection.PropertyInfo propertyInfo = obj.GetType().GetProperty(property);
