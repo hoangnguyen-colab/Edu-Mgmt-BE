@@ -56,11 +56,11 @@ namespace Edu_Mgmt_BE
                 res.Data = result;
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 res.Message = Constants.Message.ErrorMsg;
                 res.Success = true;
-                res.Data = null;
+                res.Data = e;
                 res.StatusCode = HttpStatusCode.InternalServerError;
                 return res;
             }
