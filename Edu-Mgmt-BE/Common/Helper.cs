@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Edu_Mgmt_BE.Models;
+using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -27,21 +29,60 @@ namespace Edu_Mgmt_BE.Common
             return string.Format("TCR{0}", index.ToString("D4"));
         }
 
-        public static List<Student> GetStudentListCsv(string fileName)
+        public static List<dynamic> getStudentListCsv(string filePath)
         {
             List<Student> students = new List<Student>();
 
-            var path = $"{Directory.GetCurrentDirectory()}{@"\\Files"}" + "\\" + fileName;
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 PrepareHeaderForMatch = args => args.Header.ToLower(),
             };
-            using (var reader = new StreamReader(path))
+            using (var reader = new StreamReader(filePath))
             using (var csv = new CsvReader(reader, config))
             {
-                students = csv.GetRecords<Student>().ToList();
+                //students = csv.GetRecords<Student>().ToList();
+                var records = csv.GetRecords<dynamic>().ToList();
+                return records;
             }
 
+            return null;
+        }
+        public static List<Student> getStudentListExcel(string filePath)
+        {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            List<Student> students = new List<Student>();
+            using (var stream = System.IO.File.Open(filePath, FileMode.Open, FileAccess.Read))
+            {
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                {
+                    var result = reader.AsDataSet();
+                    DataRowCollection dt = result.Tables[0].Rows;
+                    for (int dataRowCount = 1; dataRowCount < dt.Count; dataRowCount++)
+                    {
+                        students.Add(new Student()
+                        {
+                            StudentId = Guid.NewGuid(),
+                            StudentName = dt[dataRowCount][2].ToString().Trim(),
+                            StudentImage = "",
+                            StudentPhone = dt[dataRowCount][5].ToString().Trim(),
+                            StudentDescription = dt[dataRowCount][6].ToString().Trim(),
+                            StudentAddress = dt[dataRowCount][7].ToString().Trim(),
+                        });
+                    }
+                    //while (reader.Read())
+                    //{
+                    //    students.Add(new Student()
+                    //    {
+                    //        StudentId = Guid.NewGuid(),
+                    //        StudentName = reader.GetValue(2).ToString().Trim(),
+                    //        StudentImage = "",
+                    //        StudentPhone = reader.GetValue(5).ToString().Trim(),
+                    //        StudentDescription = reader.GetValue(6).ToString().Trim(),
+                    //        StudentAddress = reader.GetValue(7).ToString().Trim(),
+                    //    });
+                    //}
+                }
+            }
             return students;
         }
 
@@ -100,6 +141,7 @@ namespace Edu_Mgmt_BE.Common
             }
             return false;
         }
+
         public static string EncodeMD5(string str)
         {
             string result = "";
@@ -117,6 +159,7 @@ namespace Edu_Mgmt_BE.Common
             }
             return result;
         }
+
         public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> input, string queryString)
         {
             if (string.IsNullOrEmpty(queryString))
@@ -145,10 +188,28 @@ namespace Edu_Mgmt_BE.Common
 
             return input;
         }
+
         private static object GetPropertyValue(object obj, string property)
         {
             System.Reflection.PropertyInfo propertyInfo = obj.GetType().GetProperty(property);
             return propertyInfo.GetValue(obj, null);
+        }
+
+        public static string saveFile(IFormFile file)
+        {
+            string defaultPath = $"{Directory.GetCurrentDirectory()}\\Files\\";
+            if (!Directory.Exists(defaultPath))
+            {
+                Directory.CreateDirectory(defaultPath);
+            }
+            string filePath = defaultPath + file.FileName;
+            using (FileStream fileStream = System.IO.File.Create(filePath))
+            {
+                file.CopyTo(fileStream);
+                fileStream.Flush();
+            }
+
+            return filePath;
         }
     }
 }

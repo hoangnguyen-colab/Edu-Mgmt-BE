@@ -198,20 +198,8 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 if (file.Length > 0)
                 {
-                    string path = $"{Directory.GetCurrentDirectory()}\\Files\\";
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-                    string fileName = path + file.FileName;
-                    using (FileStream fileStream = System.IO.File.Create(fileName))
-                    {
-                        file.CopyTo(fileStream);
-                        fileStream.Flush();
-                    }
-
-                    List<Student> students = Helper.GetStudentListCsv(file.FileName);
-                    res.Data = students;
+                    //string fileSave = Helper.saveFile(file);
+                    res.Data = Helper.getStudentListExcel(@"D:\Workplace\C#\Edu-Mgmt-BE\Edu-Mgmt-BE\Files\import-student.xlsx");
                 }
                 else
                 {
@@ -221,9 +209,10 @@ namespace Edu_Mgmt_BE.Controllers
                 res.Success = true;
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 res.Message = Message.ErrorMsg;
+                res.Data = e;
                 res.Success = false;
                 res.ErrorCode = 500;
                 res.StatusCode = HttpStatusCode.InternalServerError;
