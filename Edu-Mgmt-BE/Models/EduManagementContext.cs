@@ -34,7 +34,7 @@ namespace Edu_Mgmt_BE.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("workstation id=edu-management-db.mssql.somee.com;packet size=4096;user id=hoangnguyencolab_SQLLogin_1;pwd=kwmozz73is;data source=edu-management-db.mssql.somee.com;persist security info=true;initial catalog=edu-management-db;TrustServerCertificate=true;");
+                optionsBuilder.UseSqlServer("workstation id=edu-management-db.mssql.somee.com;packet size=4096;user id=hoangnguyencolab_SQLLogin_1;pwd=kwmozz73is;data source=edu-management-db.mssql.somee.com;persist security info=false;initial catalog=edu-management-db;Encrypt=false;TrustServerCertificate=true;Trusted_Connection=true;");
             }
         }
 
