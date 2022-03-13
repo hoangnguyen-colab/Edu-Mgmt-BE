@@ -12,11 +12,6 @@ namespace Edu_Mgmt_BE.Constants
         public const string ErrorMsg = "Có lỗi xảy ra";
         public const string TitleError = "Tiêu đề không thể trống";
 
-        //Customer
-        public const string CustomerDisplayNameMissing = "Họ tên không thể trống";
-        public const string CustomerUsernameMissing = "Username không thể trống";
-        public const string CustomerPasswordMissing = "Password không thể trống";
-
         //Xử lý message tài khoản
         public const string NotAuthorize = "Bạn không có quyền này";
         public const string LoginIncorrect = "Thông tin đăng nhập không chính xác!";
@@ -31,18 +26,25 @@ namespace Edu_Mgmt_BE.Constants
         public const string AccountLogChange = "Thay đổi thông tin tài khoản";
         public const string AccountLogPassword = "Thay đổi mật khẩu";
 
+        //Xử lý message user account
+        public const string UserNameEmpty = "Tên người dùng không thể trống";
+        public const string UserLoginNameEmpty = "Tên đăng nhập không thể trống";
+        public const string UserPasswordEmpty = "Mật khẩu không thể trống";
+        public const string UserLoginNameExist = "Tên đăng nhập đã tồn tại";
+
         //Xử lý message student
         public const string StudentNotFound = "Không tìm thấy học sinh này";
         public const string StudentExist = "Học sinh đã tồn tại";
 
-        //Xử lý message class
+        //Xử lý message lớp
         public const string ClassNotFound = "Không tìm thấy lớp này";
         public const string ClassExist = "Lớp đã tồn tại";
         public const string ClassNameEmpty = "Tên lớp không thể trống";
         public const string ClassIdEmpty = "Mã lớp không thể trống";
         public const string ClassIdExist = "Mã lớp đã tồn tại";
+        public const string ClassEmpty = "Lớp không thể trống";
 
-        //Xử lý message class
+        //Xử lý message giáo viên
         public const string TeacherNotFound = "Không tìm thấy giáo viên này";
         public const string TeacherExist = "Giáo viên đã tồn tại";
         public const string TeacherNameEmpty = "Tên giáo viên không thể trống";
@@ -61,27 +63,5 @@ namespace Edu_Mgmt_BE.Constants
         public const string ProductNotExist = "Sản phẩm này không tồn tại";
         public const string ProductNotFound = "Không tìm thấy sản phẩm này";
         public const string ProductPriceNotFound = "Không tìm thấy giá sản phẩm này";
-
-        //Xử lý message order
-        public const string OrderLogChange = "Thay đổi thông tin đơn hàng";
-        public const string OrderLogDelete = "Xóa sản phẩm";
-        public const string OrderLogDeleteSuccess = "Xóa sản phẩm thành công";
-
-        //public const string ProductLogDelete = "Xóa sản phẩm";
-        public const string OrderLogAdd = "Đơn hàng mới được tạo";
-        public const string OrderNotExist = "Đơn hàng này không tồn tại";
-        public const string OrderNotFound = "Không tìm thấy đơn hàng này";
-        public const string OrderItemAdd = "Thêm vào giỏ hàng thành công";
-        public const string QuantityInvalid = "Số lượng không hợp lệ";
-        public const string QuantityNotEnough = "Số lượng sản phẩm không đủ";
-        public const string OrderStatusInvalid = "Trạng thái không hợp lệ";
-        public const string OrderStatusChanged = "Trạng thái đơn hàng đã được thay đổi";
-        public const string OrderCanceled = "Đơn hàng đã huỷ";
-
-        // Category
-        public const string CategoryNotFound = "Phân loại sản phẩm không tồn tại";
-        public const string CategoryTitleCannotNull = "Tên phân loại sản phẩm không tồn tại";
-        public const string CategoryIDCannotNull = "ID phân loại không được trống";
-        public const string CategoryCodeExist = "Mã phân loại đã tồn tại";
     }
 }

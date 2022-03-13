@@ -236,6 +236,8 @@ namespace Edu_Mgmt_BE.Controllers
                     res.Success = false;
                     res.Data = null;
                     res.StatusCode = HttpStatusCode.NotFound;
+
+                    return res;
                 }
 
                 if (string.IsNullOrEmpty(schoolYear.ActiveYear))

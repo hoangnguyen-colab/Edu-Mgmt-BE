@@ -115,5 +115,102 @@ namespace Edu_Mgmt_BE.Controllers
         {
             return await _jwtAuthenticationManager.LoginAuthenticate(_db, userLogin.username, userLogin.password);
         }
+
+        /// <summary>
+        /// Tạo mới admin
+        /// </summary>
+        /// <param SystemUser="SystemUser"></param>
+        /// <returns></returns>
+        [HttpPost("create-user")]
+        public async Task<ServiceResponse> CreateAdmin(SystemUser systemUser)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin"))
+            {
+                res.Success = false;
+                res.Message = Message.NotAuthorize;
+                res.ErrorCode = 401;
+                res.StatusCode = HttpStatusCode.Unauthorized;
+                return res;
+            }
+            try
+            {
+                if (string.IsNullOrEmpty(systemUser.Username))
+                {
+                    res.Message = Message.UserNameEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+                if (string.IsNullOrEmpty(systemUser.UserUsername))
+                {
+                    res.Message = Message.UserLoginNameEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+                if (string.IsNullOrEmpty(systemUser.UserPassword))
+                {
+                    res.Message = Message.UserPasswordEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+                var find_user = await _db.SystemUser
+                  .Where(item => item.UserUsername.Equals(systemUser.UserUsername))
+                  .FirstOrDefaultAsync();
+                if (find_user != null)
+                {
+                    res.Message = Message.UserLoginNameExist;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+
+                systemUser.SystemUserId = Guid.NewGuid();
+                systemUser.Username = systemUser.Username.Trim();
+                systemUser.UserUsername = systemUser.UserUsername.Trim();
+                systemUser.UserPassword = Helper.EncodeMD5(systemUser.UserPassword.Trim());
+                _db.SystemUser.Add(systemUser);
+
+                UserDetail sysUserDetail = new UserDetail
+                {
+                    UserDetailId = Guid.NewGuid(),
+                    UserId = null,
+                    SystemRoleId = 1,
+                    SystemUserId = systemUser.SystemUserId,
+                };
+                _db.UserDetail.Add(sysUserDetail);
+
+                var role = await _db.SystemRole.FindAsync(1);
+
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                result.Add("systemUser", systemUser);
+                result.Add("userDetail", sysUserDetail);
+                result.Add("role", role);
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+
+            }
+            catch (Exception e)
+            {
+                res.Message = Message.ErrorMsg;
+                res.Success = false;
+                res.ErrorCode = 500;
+                res.StatusCode = HttpStatusCode.InternalServerError;
+            }
+            return res;
+        }
     }
 }

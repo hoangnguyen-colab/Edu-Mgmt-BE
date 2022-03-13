@@ -195,8 +195,8 @@ namespace Edu_Mgmt_BE.Controllers
                 {
                     SystemUserId = Guid.NewGuid(),
                     Username = teacher.TeacherName,
-                    UserUsername = teacher.ShowTeacherId,
-                    UserPassword = Helper.EncodeMD5(teacher.ShowTeacherId),
+                    UserUsername = teacher.ShowTeacherId.ToLower(),
+                    UserPassword = Helper.EncodeMD5(teacher.ShowTeacherId.ToLower()),
                 };
                 _db.SystemUser.Add(sysUser);
 
@@ -306,6 +306,8 @@ namespace Edu_Mgmt_BE.Controllers
                     res.Success = false;
                     res.Data = null;
                     res.StatusCode = HttpStatusCode.NotFound;
+
+                    return res;
                 }
 
                 if (string.IsNullOrEmpty(teacher.TeacherName))

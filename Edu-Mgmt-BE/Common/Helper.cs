@@ -19,10 +19,12 @@ namespace Edu_Mgmt_BE.Common
     public static class Helper
     {
         private static readonly EduManagementContext _db = new EduManagementContext();
+        private static readonly string sql_get_role = "SELECT * FROM SystemRole WHERE RoleId IN (SELECT DISTINCT SystemRoleId FROM UserDetail WHERE SystemUserId = @SystemUserId)";
+        private static readonly string sql_get_teacher_id = $"SELECT DISTINCT Teacher.* FROM Teacher JOIN UserDetail ON UserDetail.UserId = Teacher.TeacherId JOIN SystemUser ON UserDetail.SystemUserId = @SystemUserId";
 
         public static string GenerateTeacherID(int index)
         {
-            return String.Format("TCR{0}", index.ToString("D4"));
+            return string.Format("TCR{0}", index.ToString("D4"));
         }
 
         public static List<Student> GetStudentListCsv(string fileName)
@@ -51,7 +53,6 @@ namespace Edu_Mgmt_BE.Common
                 JObject jAccount = account_login["account"] as JObject;
                 SystemUser account = jAccount.ToObject<SystemUser>();
 
-                string sql_get_role = $"select * from SystemRole where RoleId in (select distinct SystemRoleId from UserDetail where SystemUserId = @SystemUserId)";
                 var roles = _db.SystemRole
                     .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
                     .ToList();
@@ -69,9 +70,8 @@ namespace Edu_Mgmt_BE.Common
                 JObject jAccount = account_login["account"] as JObject;
                 SystemUser account = jAccount.ToObject<SystemUser>();
 
-                string sql_get_role = $"SELECT DISTINCT Teacher.* FROM Teacher JOIN UserDetail ON UserDetail.UserId = Teacher.TeacherId JOIN SystemUser ON UserDetail.SystemUserId = @SystemUserId";
                 var teacher = _db.Teacher
-                    .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
+                    .FromSqlRaw(sql_get_teacher_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
 
                 return teacher.TeacherId;
             }
@@ -86,7 +86,6 @@ namespace Edu_Mgmt_BE.Common
                 JObject jAccount = account_login["account"] as JObject;
                 SystemUser account = jAccount.ToObject<SystemUser>();
 
-                string sql_get_role = $"select * from SystemRole where RoleId in (select distinct SystemRoleId from UserDetail where SystemUserId = @SystemUserId)";
                 var roles = _db.SystemRole
                     .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
                     .ToList();
