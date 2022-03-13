@@ -209,5 +209,76 @@ namespace Edu_Mgmt_BE.Controllers
             return res;
         }
 
+        /// <summary>
+        /// Sửa năm học
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpPut("edit/{id}")]
+        public async Task<ServiceResponse> EditSchoolYear(Guid id, SchoolYear schoolYear)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin"))
+            {
+                res.Success = false;
+                res.Message = Message.NotAuthorize;
+                res.ErrorCode = 401;
+                res.StatusCode = HttpStatusCode.Unauthorized;
+                return res;
+            }
+            try
+            {
+                var yearResult = await _db.SchoolYear.FindAsync(id);
+                if (yearResult == null)
+                {
+                    res.Message = Message.SchoolYearNotFound;
+                    res.ErrorCode = 404;
+                    res.Success = false;
+                    res.Data = null;
+                    res.StatusCode = HttpStatusCode.NotFound;
+                }
+
+                if (string.IsNullOrEmpty(schoolYear.ActiveYear))
+                {
+                    res.Message = Message.SchoolYearDateEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+
+                var find_year = await _db.SchoolYear
+                    .Where(item => item.ActiveYear.Equals(schoolYear.ActiveYear) && !item.ActiveYear.Equals(yearResult.ActiveYear))
+                    .FirstOrDefaultAsync();
+                if (find_year != null)
+                {
+                    res.Message = Message.SchoolYearExist;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+
+                yearResult.ActiveYear = schoolYear.ActiveYear.Trim();
+                yearResult.SchoolYearName = schoolYear.SchoolYearName.Trim();
+                yearResult.SchoolYearDate = schoolYear.ActiveYear + "-" + (Int32.Parse(schoolYear.ActiveYear) + 1);
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = yearResult;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception)
+            {
+                res.Message = Message.ErrorMsg;
+                res.Success = false;
+                res.ErrorCode = 500;
+                res.StatusCode = HttpStatusCode.InternalServerError;
+            }
+            return res;
+        }
     }
 }

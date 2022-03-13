@@ -122,7 +122,7 @@ namespace Edu_Mgmt_BE.Controllers
                 if (teacher == null)
                 {
                     res.Data = null;
-                    res.Message = Message.StudentNotFound;
+                    res.Message = Message.TeacherNotFound;
                     res.StatusCode = HttpStatusCode.NotFound;
                     return res;
                 }
@@ -268,6 +268,73 @@ namespace Edu_Mgmt_BE.Controllers
                 res.Success = true;
                 res.Data = null;
                 res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception)
+            {
+                res.Message = Message.ErrorMsg;
+                res.Success = false;
+                res.ErrorCode = 500;
+                res.StatusCode = HttpStatusCode.InternalServerError;
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Sửa giáo viên
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpPut("edit/{id}")]
+        public async Task<ServiceResponse> EditTeacher(Guid id, Teacher teacher)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin"))
+            {
+                res.Success = false;
+                res.Message = Message.NotAuthorize;
+                res.ErrorCode = 401;
+                res.StatusCode = HttpStatusCode.Unauthorized;
+                return res;
+            }
+            try
+            {
+                var teacherResult = await _db.Teacher.FindAsync(id);
+                if (teacherResult == null)
+                {
+                    res.Message = Message.TeacherNotFound;
+                    res.ErrorCode = 404;
+                    res.Success = false;
+                    res.Data = null;
+                    res.StatusCode = HttpStatusCode.NotFound;
+                }
+
+                if (string.IsNullOrEmpty(teacher.TeacherName))
+                {
+                    res.Message = Message.TeacherNameEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+
+                teacherResult.TeacherName = teacher.TeacherName.Trim();
+                teacherResult.TeacherImage = teacher.TeacherImage.Trim();
+                teacherResult.TeacherEmail = teacher.TeacherEmail.Trim();
+                teacherResult.TeacherPhone = teacher.TeacherPhone.Trim();
+                teacherResult.TeacherAddress = teacher.TeacherAddress.Trim();
+
+                var role = await _db.SystemRole.FindAsync(2);
+
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                result.Add("teacher", teacherResult);
+                result.Add("role", role);
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+
+                await _db.SaveChangesAsync();
             }
             catch (Exception)
             {

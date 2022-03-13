@@ -43,6 +43,41 @@ namespace Edu_Mgmt_BE.Common
             return students;
         }
 
+        public static string getRole(HttpContext httpContext)
+        {
+            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+            if (account_login != null && account_login.ContainsKey("account"))
+            {
+                JObject jAccount = account_login["account"] as JObject;
+                SystemUser account = jAccount.ToObject<SystemUser>();
+
+                string sql_get_role = $"select * from SystemRole where RoleId in (select distinct SystemRoleId from UserDetail where SystemUserId = @SystemUserId)";
+                var roles = _db.SystemRole
+                    .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
+                    .ToList();
+
+                return roles[0].RoleName;
+            }
+            return "";
+        }
+
+        public static Guid? getTeacherId(HttpContext httpContext)
+        {
+            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+            if (account_login != null && account_login.ContainsKey("account"))
+            {
+                JObject jAccount = account_login["account"] as JObject;
+                SystemUser account = jAccount.ToObject<SystemUser>();
+
+                string sql_get_role = $"SELECT DISTINCT Teacher.* FROM Teacher JOIN UserDetail ON UserDetail.UserId = Teacher.TeacherId JOIN SystemUser ON UserDetail.SystemUserId = @SystemUserId";
+                var teacher = _db.Teacher
+                    .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
+
+                return teacher.TeacherId;
+            }
+            return null;
+        }
+
         public static bool CheckPermission(HttpContext httpContext, string role_code)
         {
             Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);

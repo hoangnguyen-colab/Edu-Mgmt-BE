@@ -22,6 +22,9 @@ namespace Edu_Mgmt_BE.Controllers
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
+        private const string TeacherClassQuery = "SELECT DISTINCT Class.* FROM Class JOIN ClassDetail  ON Class.ClassId = ClassDetail.ClassId JOIN Teacher ON ClassDetail.TeacherId = @teacherId";
+        private const string TeacherClassQuerySearch = "SELECT * FROM  (SELECT DISTINCT Class.* FROM Class JOIN ClassDetail  ON Class.ClassId = ClassDetail.ClassId JOIN Teacher ON ClassDetail.TeacherId = @teacherId) class where CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
+        private const string SearchClassQuery = "SELECT * FROM Class WHERE CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
 
         public ClassController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
         {
@@ -45,18 +48,36 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 var pagingData = new PagingData();
                 List<Class> records = new List<Class>();
-                //Tổng số bản ghi
-                if (search != null && search.Trim() != "")
+
+                string role = Helper.getRole(HttpContext);
+                if (role.Equals("teacher"))
                 {
-                    //CHARINDEX tìm không phân biệt hoa thường trả về vị trí đầu tiên xuất hiện của chuỗi con
-                    string sql_get_year = "SELECT * FROM Class WHERE CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
-                    var param = new SqlParameter("@txtSeach", search);
-                    records = _db.Class.FromSqlRaw(sql_get_year, param).OrderByDescending(x => x.CreatedDate).ToList();
+                    var teacherId = Helper.getTeacherId(HttpContext);
+                    if (search != null && search.Trim() != "")
+                    {
+                        var paramId = new SqlParameter("@teacherId", teacherId);
+                        var paramSearch = new SqlParameter("@txtSeach", search);
+                        records = _db.Class.FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch).OrderByDescending(x => x.CreatedDate).ToList();
+                    }
+                    else
+                    {
+                        var paramId = new SqlParameter("@teacherId", teacherId);
+                        records = _db.Class.FromSqlRaw(TeacherClassQuery, paramId).OrderByDescending(x => x.CreatedDate).ToList();
+                    }
                 }
                 else
                 {
-                    records = await _db.Class.OrderByDescending(x => x.CreatedDate).ToListAsync();
+                    if (search != null && search.Trim() != "")
+                    {
+                        var param = new SqlParameter("@txtSeach", search);
+                        records = _db.Class.FromSqlRaw(SearchClassQuery, param).OrderByDescending(x => x.CreatedDate).ToList();
+                    }
+                    else
+                    {
+                        records = await _db.Class.OrderByDescending(x => x.CreatedDate).ToListAsync();
+                    }
                 }
+
                 pagingData.TotalRecord = records.Count(); //Tổng số bản ghi
                 pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value)); //Tổng số trang
                 pagingData.Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(); //Dữ liệu của từng trang
@@ -65,7 +86,7 @@ namespace Edu_Mgmt_BE.Controllers
                 res.StatusCode = HttpStatusCode.OK;
                 res.Data = pagingData;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 res.Message = Message.ErrorMsg;
                 res.Success = false;
@@ -116,12 +137,12 @@ namespace Edu_Mgmt_BE.Controllers
 
                 classObj.ClassId = Guid.NewGuid();
                 classObj.ClassName = classObj.ClassName.Trim();
-                classObj.ShowClassId = classObj.ShowClassId.Trim();
+                classObj.ShowClassId = classObj.ClassName;
 
-                var find_year = await _db.Class
+                var find_class = await _db.Class
                     .Where(item => item.ClassName.Equals(classObj.ClassName))
                     .FirstOrDefaultAsync();
-                if (find_year != null)
+                if (find_class != null)
                 {
                     res.Message = Message.ClassExist;
                     res.Success = false;
@@ -210,6 +231,77 @@ namespace Edu_Mgmt_BE.Controllers
 
                 res.Success = true;
                 res.Data = null;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception)
+            {
+                res.Message = Message.ErrorMsg;
+                res.Success = false;
+                res.ErrorCode = 500;
+                res.StatusCode = HttpStatusCode.InternalServerError;
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Sửa lớp
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpPut("edit/{id}")]
+        public async Task<ServiceResponse> EditClass(Guid id, Class classObj)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin"))
+            {
+                res.Success = false;
+                res.Message = Message.NotAuthorize;
+                res.ErrorCode = 401;
+                res.StatusCode = HttpStatusCode.Unauthorized;
+                return res;
+            }
+            try
+            {
+                var classResult = await _db.Class.FindAsync(id);
+                if (classResult == null)
+                {
+                    res.Message = Message.ClassNotFound;
+                    res.ErrorCode = 404;
+                    res.Success = false;
+                    res.Data = null;
+                    res.StatusCode = HttpStatusCode.NotFound;
+                }
+
+                if (string.IsNullOrEmpty(classObj.ClassName))
+                {
+                    res.Message = Message.ClassNameEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+
+                var find_year = await _db.Class
+                    .Where(item => item.ClassName.Equals(classObj.ClassName))
+                    .FirstOrDefaultAsync();
+                if (find_year != null)
+                {
+                    res.Message = Message.ClassExist;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+
+                classResult.ClassName = classObj.ClassName.Trim();
+                classResult.ShowClassId = classObj.ClassName.Trim();
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = classResult;
                 res.StatusCode = HttpStatusCode.OK;
             }
             catch (Exception)
