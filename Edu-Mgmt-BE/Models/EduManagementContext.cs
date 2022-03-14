@@ -187,7 +187,7 @@ namespace Edu_Mgmt_BE.Models
 
                 entity.Property(e => e.StudentGender).HasMaxLength(6);
 
-                entity.Property(e => e.StudentDOB).HasMaxLength(10);
+                entity.Property(e => e.StudentDOB).HasMaxLength(15);
 
                 entity.Property(e => e.StudentPhone).HasMaxLength(20);
             });
@@ -279,7 +279,7 @@ namespace Edu_Mgmt_BE.Models
 
                 entity.Property(e => e.TeacherGender).HasMaxLength(6);
 
-                entity.Property(e => e.TeacherDOB).HasMaxLength(10);
+                entity.Property(e => e.TeacherDOB).HasMaxLength(15);
             });
 
             modelBuilder.Entity<UserDetail>(entity =>

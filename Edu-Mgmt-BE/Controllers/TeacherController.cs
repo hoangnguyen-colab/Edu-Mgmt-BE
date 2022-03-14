@@ -325,6 +325,7 @@ namespace Edu_Mgmt_BE.Controllers
                 teacherResult.TeacherEmail = teacher.TeacherEmail?.Trim();
                 teacherResult.TeacherPhone = teacher.TeacherPhone?.Trim();
                 teacherResult.TeacherAddress = teacher.TeacherAddress?.Trim();
+                teacherResult.ModifyDate = DateTime.Now;
 
                 var role = await _db.SystemRole.FindAsync(2);
 

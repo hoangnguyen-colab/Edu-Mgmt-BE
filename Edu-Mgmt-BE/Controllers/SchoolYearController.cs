@@ -266,6 +266,7 @@ namespace Edu_Mgmt_BE.Controllers
                 yearResult.ActiveYear = schoolYear.ActiveYear.Trim();
                 yearResult.SchoolYearName = schoolYear.SchoolYearName.Trim();
                 yearResult.SchoolYearDate = schoolYear.ActiveYear + "-" + (Int32.Parse(schoolYear.ActiveYear) + 1);
+                yearResult.ModifyDate = DateTime.Now;
 
                 await _db.SaveChangesAsync();
 

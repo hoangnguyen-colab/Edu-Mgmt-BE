@@ -218,7 +218,7 @@ namespace Edu_Mgmt_BE.Controllers
                     StudentDescription = studentReq.StudentDescription?.Trim() ?? "",
                     StudentPhone = studentReq.StudentPhone.Trim(),
                 };
-                //_db.Student.Add(student);
+                _db.Student.Add(student);
 
                 SystemUser sysUser = new SystemUser
                 {
@@ -227,7 +227,7 @@ namespace Edu_Mgmt_BE.Controllers
                     UserUsername = student.ShowStudentId.ToLower(),
                     UserPassword = Helper.EncodeMD5(student.ShowStudentId.ToLower()),
                 };
-                //_db.SystemUser.Add(sysUser);
+                _db.SystemUser.Add(sysUser);
 
                 UserDetail sysUserDetail = new UserDetail
                 {
@@ -236,7 +236,7 @@ namespace Edu_Mgmt_BE.Controllers
                     SystemRoleId = 3,
                     SystemUserId = sysUser.SystemUserId,
                 };
-                //_db.UserDetail.Add(sysUserDetail);
+                _db.UserDetail.Add(sysUserDetail);
 
                 var role = await _db.SystemRole.FindAsync(3);
 
@@ -246,11 +246,11 @@ namespace Edu_Mgmt_BE.Controllers
                 }
 
                 Dictionary<string, object> result = new Dictionary<string, object>();
-                result.Add("teacher", student);
-                result.Add("teacherAccount", sysUser);
+                result.Add("student", student);
+                result.Add("studentAccount", sysUser);
                 result.Add("role", role);
                 result.Add("classDetail", classDetail);
-                //await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
                 res.Success = true;
                 res.Data = result;
@@ -370,5 +370,79 @@ namespace Edu_Mgmt_BE.Controllers
             return res;
         }
 
+        /// <summary>
+        /// Sửa học sinh
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpPut("edit/{id}")]
+        public async Task<ServiceResponse> EditTeacher(Guid id, Student student)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                res.Success = false;
+                res.Message = Message.NotAuthorize;
+                res.ErrorCode = 401;
+                res.StatusCode = HttpStatusCode.Unauthorized;
+                return res;
+            }
+            try
+            {
+                var studentResult = await _db.Student.FindAsync(id);
+                if (studentResult == null)
+                {
+                    res.Message = Message.StudentNotFound;
+                    res.ErrorCode = 404;
+                    res.Success = false;
+                    res.Data = null;
+                    res.StatusCode = HttpStatusCode.NotFound;
+
+                    return res;
+                }
+
+                if (string.IsNullOrEmpty(student.StudentName))
+                {
+                    res.Message = Message.StudentNameEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
+
+                    return res;
+                }
+
+                studentResult.StudentName = student.StudentName.Trim();
+                studentResult.StudentImage = student.StudentImage?.Trim();
+                studentResult.StudentPhone = student.StudentPhone?.Trim();
+                studentResult.StudentDOB = student.StudentDOB?.Trim();
+                studentResult.StudentGender = student.StudentGender?.Trim();
+                studentResult.StudentDescription = student.StudentDescription?.Trim();
+                studentResult.StudentAddress = student.StudentAddress?.Trim();
+                studentResult.StudentImage = student.StudentImage?.Trim();
+                studentResult.ShowStudentId = student.ShowStudentId?.Trim();
+                studentResult.ModifyDate = DateTime.Now;
+
+                var role = await _db.SystemRole.FindAsync(3);
+
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                result.Add("student", studentResult);
+                result.Add("role", role);
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                res.Message = Message.ErrorMsg;
+                res.Data = e;
+                res.Success = false;
+                res.ErrorCode = 500;
+                res.StatusCode = HttpStatusCode.InternalServerError;
+            }
+            return res;
+        }
     }
 }

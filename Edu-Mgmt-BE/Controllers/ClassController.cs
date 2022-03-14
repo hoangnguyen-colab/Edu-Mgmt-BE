@@ -301,6 +301,7 @@ namespace Edu_Mgmt_BE.Controllers
 
                 classResult.ClassName = classObj.ClassName.Trim();
                 classResult.ShowClassId = classObj.ClassName.Trim();
+                classResult.ModifyDate = DateTime.Now;
 
                 await _db.SaveChangesAsync();
 
