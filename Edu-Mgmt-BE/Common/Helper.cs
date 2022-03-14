@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Edu_Mgmt_BE.Models;
+using Edu_Mgmt_BE.Models.CustomModel.FileSave;
 using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
@@ -61,9 +62,9 @@ namespace Edu_Mgmt_BE.Common
                     {
                         students.Add(new Student()
                         {
-                            StudentId = Guid.NewGuid(),
                             StudentName = dt[dataRowCount][2].ToString().Trim(),
-                            StudentImage = "",
+                            StudentGender = dt[dataRowCount][3].ToString().Trim(),
+                            StudentDOB = dt[dataRowCount][4].ToString().Trim(),
                             StudentPhone = dt[dataRowCount][5].ToString().Trim(),
                             StudentDescription = dt[dataRowCount][6].ToString().Trim(),
                             StudentAddress = dt[dataRowCount][7].ToString().Trim(),
@@ -195,21 +196,45 @@ namespace Edu_Mgmt_BE.Common
             return propertyInfo.GetValue(obj, null);
         }
 
-        public static string saveFile(IFormFile file)
+        public static FileSaveResponse saveFile(HttpContext context, IFormFile file)
         {
-            string defaultPath = $"{Directory.GetCurrentDirectory()}\\Files\\";
-            if (!Directory.Exists(defaultPath))
+            FileSaveResponse res = new FileSaveResponse();
+            try
             {
-                Directory.CreateDirectory(defaultPath);
-            }
-            string filePath = defaultPath + file.FileName;
-            using (FileStream fileStream = System.IO.File.Create(filePath))
-            {
-                file.CopyTo(fileStream);
-                fileStream.Flush();
-            }
+                Dictionary<string, object> account_login = JsonConvert
+                    .DeserializeObject<Dictionary<string, object>>(context.User.Identity.Name);
+                if (account_login != null && account_login.ContainsKey("account"))
+                {
+                    JObject jAccount = account_login["account"] as JObject;
+                    SystemUser account = jAccount.ToObject<SystemUser>();
 
-            return filePath;
+                    string defaultPath = $"{Directory.GetCurrentDirectory()}\\Files\\student-import\\{account.UserUsername}\\";
+
+                    if (!Directory.Exists(defaultPath))
+                    {
+                        Directory.CreateDirectory(defaultPath);
+                    }
+                    string filePath = defaultPath + file.FileName;
+                    using (FileStream fileStream = System.IO.File.Create(filePath))
+                    {
+                        file.CopyTo(fileStream);
+                        fileStream.Flush();
+                    }
+                    res.filePath = filePath;
+                    res.success = true;
+                }
+                else
+                {
+                    res.filePath = "";
+                    res.success = false;
+                }
+            }
+            catch (Exception)
+            {
+                res.filePath = "";
+                res.success = false;
+            }
+            return res;
         }
     }
 }

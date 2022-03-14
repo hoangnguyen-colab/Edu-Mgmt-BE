@@ -19,6 +19,8 @@ namespace Edu_Mgmt_BE.Models
         public Guid TeacherId { get; set; }
         public string ShowTeacherId { get; set; }
         public string TeacherName { get; set; }
+        public string TeacherGender { get; set; }
+        public string TeacherDOB { get; set; }
         public string TeacherImage { get; set; }
         public string TeacherDescription { get; set; }
         public string TeacherEmail { get; set; }

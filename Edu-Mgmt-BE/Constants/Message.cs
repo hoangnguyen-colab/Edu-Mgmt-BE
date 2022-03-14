@@ -32,6 +32,12 @@ namespace Edu_Mgmt_BE.Constants
         public const string UserPasswordEmpty = "Mật khẩu không thể trống";
         public const string UserLoginNameExist = "Tên đăng nhập đã tồn tại";
 
+        //Xử lý message file
+        public const string FileUploadFail = "Tải lên file thất bại";
+        public const string FileEmpty = "File trống";
+        public const string FileReadFail = "Đọc file thất bại";
+        public const string FileServerFail = "Đã có lỗi, thử lại sau hoặc sử dụng định dạng file theo mẫu";
+
         //Xử lý message student
         public const string StudentNotFound = "Không tìm thấy học sinh này";
         public const string StudentExist = "Học sinh đã tồn tại";

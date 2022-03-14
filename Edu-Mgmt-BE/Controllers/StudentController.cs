@@ -198,20 +198,32 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 if (file.Length > 0)
                 {
-                    //string fileSave = Helper.saveFile(file);
-                    res.Data = Helper.getStudentListExcel(@"D:\Workplace\C#\Edu-Mgmt-BE\Edu-Mgmt-BE\Files\import-student.xlsx");
+                    var fileRes = Helper.saveFile(HttpContext, file);
+                    if (fileRes.success)
+                    {
+                        res.Data = Helper.getStudentListExcel(fileRes.filePath);
+                        res.Success = true;
+                        res.StatusCode = HttpStatusCode.OK;
+                    } else
+                    {
+                        res.Message = Message.FileReadFail;
+                        res.Data = null;
+                        res.Success = true;
+                        res.StatusCode = HttpStatusCode.OK;
+                    }
                 }
                 else
                 {
+                    res.Message = Message.FileEmpty;
                     res.Data = null;
+                    res.Success = false;
+                    res.StatusCode = HttpStatusCode.BadRequest;
                 }
 
-                res.Success = true;
-                res.StatusCode = HttpStatusCode.OK;
             }
             catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
+                res.Message = Message.FileServerFail;
                 res.Data = e;
                 res.Success = false;
                 res.ErrorCode = 500;
