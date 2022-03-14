@@ -4,6 +4,7 @@ using Edu_Mgmt_BE.Common;
 using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
+using Edu_Mgmt_BE.Models.CustomModel.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -134,7 +135,7 @@ namespace Edu_Mgmt_BE.Controllers
         /// <param name="student"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ServiceResponse> AddStudent(Student student)
+        public async Task<ServiceResponse> AddStudent(AddStudentRequest studentReq)
         {
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
@@ -147,29 +148,118 @@ namespace Edu_Mgmt_BE.Controllers
             }
             try
             {
-                if (string.IsNullOrEmpty(student.StudentName))
+                if (string.IsNullOrEmpty(studentReq.StudentName))
                 {
-                    res.Message = Message.SchoolYearDateEmpty;
+                    res.Message = Message.StudentNameEmpty;
                     res.Success = false;
                     res.ErrorCode = 400;
                     res.StatusCode = HttpStatusCode.BadRequest;
 
                     return res;
                 }
+                if (string.IsNullOrEmpty(studentReq.StudentPhone))
+                {
+                    res.Message = Message.StudentPhoneEmpty;
+                    res.Success = false;
+                    res.ErrorCode = 400;
+                    res.StatusCode = HttpStatusCode.BadRequest;
 
-                student.StudentId = Guid.NewGuid();
-                student.StudentName = student.StudentName.Trim();
+                    return res;
+                }
+                ClassDetail classDetail = null;
+                if (!string.IsNullOrEmpty(studentReq.ClassId.ToString()))
+                {
+                    var classResult = await _db.Class.FindAsync(studentReq.ClassId);
+                    if (classResult == null)
+                    {
+                        res.Message = Message.ClassNotFound;
+                        res.ErrorCode = 404;
+                        res.Success = false;
+                        res.Data = null;
+                        res.StatusCode = HttpStatusCode.NotFound;
 
-                _db.Student.Add(student);
-                await _db.SaveChangesAsync();
+                        return res;
+                    }
+                    var yearResult = await _db.SchoolYear.FindAsync(studentReq.SchoolYearId);
+                    if (classResult == null)
+                    {
+                        res.Message = Message.SchoolYearNotFound;
+                        res.ErrorCode = 404;
+                        res.Success = false;
+                        res.Data = null;
+                        res.StatusCode = HttpStatusCode.NotFound;
+
+                        return res;
+                    }
+
+                    classDetail = await _db.ClassDetail
+                        .Where(item => studentReq.ClassId.Equals(item.ClassId)
+                        && studentReq.SchoolYearId.Equals(item.SchoolYearId))
+                        .FirstOrDefaultAsync();
+                    if (classDetail == null)
+                    {
+                        classDetail = new ClassDetail()
+                        {
+                            ClassDetailId = Guid.NewGuid(),
+                            SchoolYearId = studentReq.SchoolYearId.Value,
+                        };
+                        //_db.ClassDetail.Add(classDetail);
+                    }
+                }
+                Student student = new Student()
+                {
+                    ShowStudentId = Helper.GenerateStudentID(_db.Student.Count() + 1),
+                    StudentId = Guid.NewGuid(),
+                    StudentName = studentReq.StudentName.Trim(),
+                    StudentGender = studentReq.StudentGender?.Trim() ?? "",
+                    StudentAddress = studentReq.StudentAddress?.Trim() ?? "",
+                    StudentImage = studentReq.StudentImage?.Trim() ?? "",
+                    StudentDOB = studentReq.StudentDOB?.Trim() ?? "",
+                    StudentDescription = studentReq.StudentDescription?.Trim() ?? "",
+                    StudentPhone = studentReq.StudentPhone.Trim(),
+                };
+                //_db.Student.Add(student);
+
+                SystemUser sysUser = new SystemUser
+                {
+                    SystemUserId = Guid.NewGuid(),
+                    Username = student.StudentName,
+                    UserUsername = student.ShowStudentId.ToLower(),
+                    UserPassword = Helper.EncodeMD5(student.ShowStudentId.ToLower()),
+                };
+                //_db.SystemUser.Add(sysUser);
+
+                UserDetail sysUserDetail = new UserDetail
+                {
+                    UserDetailId = Guid.NewGuid(),
+                    UserId = student.StudentId,
+                    SystemRoleId = 3,
+                    SystemUserId = sysUser.SystemUserId,
+                };
+                //_db.UserDetail.Add(sysUserDetail);
+
+                var role = await _db.SystemRole.FindAsync(3);
+
+                if (classDetail != null)
+                {
+                    classDetail.StudentId = student.StudentId;
+                }
+
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                result.Add("teacher", student);
+                result.Add("teacherAccount", sysUser);
+                result.Add("role", role);
+                result.Add("classDetail", classDetail);
+                //await _db.SaveChangesAsync();
 
                 res.Success = true;
-                res.Data = student;
+                res.Data = result;
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 res.Message = Message.ErrorMsg;
+                res.Data = e;
                 res.Success = false;
                 res.ErrorCode = 500;
                 res.StatusCode = HttpStatusCode.InternalServerError;
@@ -204,7 +294,8 @@ namespace Edu_Mgmt_BE.Controllers
                         res.Data = Helper.getStudentListExcel(fileRes.filePath);
                         res.Success = true;
                         res.StatusCode = HttpStatusCode.OK;
-                    } else
+                    }
+                    else
                     {
                         res.Message = Message.FileReadFail;
                         res.Data = null;

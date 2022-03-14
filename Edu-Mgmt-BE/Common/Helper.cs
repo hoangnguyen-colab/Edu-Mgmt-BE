@@ -30,6 +30,11 @@ namespace Edu_Mgmt_BE.Common
             return string.Format("TCR{0}", index.ToString("D4"));
         }
 
+        public static string GenerateStudentID(int index)
+        {
+            return string.Format("STU{0}", index.ToString("D5"));
+        }
+
         public static List<dynamic> getStudentListCsv(string filePath)
         {
             List<Student> students = new List<Student>();

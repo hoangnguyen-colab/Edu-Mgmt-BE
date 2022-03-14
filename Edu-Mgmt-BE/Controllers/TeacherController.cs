@@ -213,7 +213,7 @@ namespace Edu_Mgmt_BE.Controllers
 
                 Dictionary<string, object> result = new Dictionary<string, object>();
                 result.Add("teacher", teacher);
-                result.Add("teacher-account", sysUser);
+                result.Add("teacherAccount", sysUser);
                 result.Add("role", role);
 
                 res.Success = true;
@@ -321,10 +321,10 @@ namespace Edu_Mgmt_BE.Controllers
                 }
 
                 teacherResult.TeacherName = teacher.TeacherName.Trim();
-                teacherResult.TeacherImage = teacher.TeacherImage.Trim();
-                teacherResult.TeacherEmail = teacher.TeacherEmail.Trim();
-                teacherResult.TeacherPhone = teacher.TeacherPhone.Trim();
-                teacherResult.TeacherAddress = teacher.TeacherAddress.Trim();
+                teacherResult.TeacherImage = teacher.TeacherImage?.Trim();
+                teacherResult.TeacherEmail = teacher.TeacherEmail?.Trim();
+                teacherResult.TeacherPhone = teacher.TeacherPhone?.Trim();
+                teacherResult.TeacherAddress = teacher.TeacherAddress?.Trim();
 
                 var role = await _db.SystemRole.FindAsync(2);
 

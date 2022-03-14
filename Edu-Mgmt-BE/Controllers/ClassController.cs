@@ -369,6 +369,17 @@ namespace Edu_Mgmt_BE.Controllers
 
                     return res;
                 }
+                var yearResult = await _db.SchoolYear.FindAsync(classDetail.SchoolYearId);
+                if (classResult == null)
+                {
+                    res.Message = Message.SchoolYearNotFound;
+                    res.ErrorCode = 404;
+                    res.Success = false;
+                    res.Data = null;
+                    res.StatusCode = HttpStatusCode.NotFound;
+
+                    return res;
+                }
 
                 var teacherResult = await _db.Teacher.FindAsync(classDetail.TeacherId);
                 if (teacherResult == null)
