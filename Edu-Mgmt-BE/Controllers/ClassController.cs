@@ -2,6 +2,7 @@
 using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
+using Edu_Mgmt_BE.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -159,12 +160,9 @@ namespace Edu_Mgmt_BE.Controllers
                 res.Data = classObj;
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
@@ -235,12 +233,9 @@ namespace Edu_Mgmt_BE.Controllers
                 res.Data = null;
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
@@ -309,12 +304,9 @@ namespace Edu_Mgmt_BE.Controllers
                 res.Data = classResult;
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
@@ -409,12 +401,9 @@ namespace Edu_Mgmt_BE.Controllers
                 res.Data = result;
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }

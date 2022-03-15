@@ -2,6 +2,7 @@
 using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
+using Edu_Mgmt_BE.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -52,11 +53,7 @@ namespace Edu_Mgmt_BE.Controllers
             }
             catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Data = e;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
