@@ -58,11 +58,7 @@ namespace Edu_Mgmt_BE.Controllers
                 if (!Helper.CheckPermission(HttpContext, "admin") &&
                     !Helper.CheckPermission(HttpContext, "teacher"))
                 {
-                    res.Success = false;
-                    res.Message = Message.NotAuthorize;
-                    res.ErrorCode = 403;
-                    res.StatusCode = HttpStatusCode.Unauthorized;
-                    return res;
+                    return ErrorHandler.UnauthorizeCatchResponse();
                 }
                 var pagingData = new PagingData();
                 List<Student> records = new List<Student>();
@@ -83,23 +79,18 @@ namespace Edu_Mgmt_BE.Controllers
                         .ToListAsync();
                 }
 
-                pagingData.TotalRecord = records.Count();
-                pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value));
-                pagingData.Data = records
-                    .Skip((page.Value - 1) * record.Value)
-                    .Take(record.Value)
-                    .ToList();
-
                 res.Success = true;
-                res.Data = pagingData;
+                res.Data = new PagingData()
+                {
+                    TotalRecord = records.Count(),
+                    TotalPage = Convert.ToInt32(Math.Ceiling((decimal)records.Count() / (decimal)record.Value)),
+                    Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(),
+                };
                 res.StatusCode = HttpStatusCode.OK;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
@@ -116,10 +107,7 @@ namespace Edu_Mgmt_BE.Controllers
             var student = await _db.Student.FindAsync(id);
             if (student == null)
             {
-                res.Data = null;
-                res.Message = Message.StudentNotFound;
-                res.StatusCode = HttpStatusCode.NotFound;
-                return res;
+                return ErrorHandler.NotFoundResponse(Message.StudentNotFound);
             }
             Dictionary<string, object> result = new Dictionary<string, object>();
             result.Add("student", student);
@@ -141,31 +129,17 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
                 if (string.IsNullOrEmpty(studentReq.StudentName))
                 {
-                    res.Message = Message.StudentNameEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.StudentNameEmpty);
                 }
                 if (string.IsNullOrEmpty(studentReq.StudentPhone))
                 {
-                    res.Message = Message.StudentPhoneEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.StudentPhoneEmpty);
                 }
                 ClassDetail classDetail = null;
                 if (!string.IsNullOrEmpty(studentReq.ClassId.ToString()))
@@ -173,24 +147,12 @@ namespace Edu_Mgmt_BE.Controllers
                     var classResult = await _db.Class.FindAsync(studentReq.ClassId);
                     if (classResult == null)
                     {
-                        res.Message = Message.ClassNotFound;
-                        res.ErrorCode = 404;
-                        res.Success = false;
-                        res.Data = null;
-                        res.StatusCode = HttpStatusCode.NotFound;
-
-                        return res;
+                        return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
                     }
                     var yearResult = await _db.SchoolYear.FindAsync(studentReq.SchoolYearId);
                     if (classResult == null)
                     {
-                        res.Message = Message.SchoolYearNotFound;
-                        res.ErrorCode = 404;
-                        res.Success = false;
-                        res.Data = null;
-                        res.StatusCode = HttpStatusCode.NotFound;
-
-                        return res;
+                        return ErrorHandler.NotFoundResponse(Message.SchoolYearNotFound);
                     }
 
                     classDetail = await _db.ClassDetail
@@ -275,11 +237,7 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
@@ -302,10 +260,7 @@ namespace Edu_Mgmt_BE.Controllers
                 }
                 else
                 {
-                    res.Message = Message.FileEmpty;
-                    res.Data = null;
-                    res.Success = false;
-                    res.StatusCode = HttpStatusCode.BadRequest;
+                    res = ErrorHandler.NotFoundResponse(Message.FileEmpty);
                 }
 
             }
@@ -327,23 +282,14 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
                 var studentObj = await _db.Student.FindAsync(id);
                 if (studentObj == null)
                 {
-                    res.Message = Message.StudentNotFound;
-                    res.ErrorCode = 404;
-                    res.Success = false;
-                    res.Data = null;
-                    res.StatusCode = HttpStatusCode.NotFound;
-                    return res;
+                    return ErrorHandler.NotFoundResponse(Message.StudentNotFound);
                 }
 
                 _db.Student.Remove(studentObj);
@@ -371,34 +317,19 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
                 var studentResult = await _db.Student.FindAsync(id);
                 if (studentResult == null)
                 {
-                    res.Message = Message.StudentNotFound;
-                    res.ErrorCode = 404;
-                    res.Success = false;
-                    res.Data = null;
-                    res.StatusCode = HttpStatusCode.NotFound;
-
-                    return res;
+                    return ErrorHandler.NotFoundResponse(Message.StudentNotFound);
                 }
 
                 if (string.IsNullOrEmpty(student.StudentName))
                 {
-                    res.Message = Message.StudentNameEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.StudentNameEmpty);
                 }
 
                 studentResult.StudentName = student.StudentName.Trim();

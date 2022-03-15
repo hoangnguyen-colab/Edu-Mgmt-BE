@@ -3,6 +3,7 @@ using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
 using Edu_Mgmt_BE.Models.CustomModel.User;
+using Edu_Mgmt_BE.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -39,11 +40,14 @@ namespace Edu_Mgmt_BE.Controllers
         public async Task<ServiceResponse> GetAccountsByPagingAndSearch([FromQuery] string search, [FromQuery] int? page = 1, [FromQuery] int? record = 10)
         {
             ServiceResponse res = new ServiceResponse();
-            if (Helper.CheckPermission(HttpContext, "admin"))
+            try
             {
-                var pagingData = new PagingData();
+                if (!Helper.CheckPermission(HttpContext, "admin"))
+                {
+                    return ErrorHandler.UnauthorizeCatchResponse();
+                }
                 List<SystemUser> records = new List<SystemUser>();
-                //Tổng số bản ghi
+
                 if (search != null && search.Trim() != "")
                 {
                     //CHARINDEX tìm không phân biệt hoa thường trả về vị trí đầu tiên xuất hiện của chuỗi con
@@ -55,21 +59,23 @@ namespace Edu_Mgmt_BE.Controllers
                 {
                     records = await _db.SystemUser.OrderByDescending(x => x.CreatedDate).ToListAsync();
                 }
-                pagingData.TotalRecord = records.Count(); //Tổng số bản ghi
-                pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value)); //Tổng số trang
-                pagingData.Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(); //Dữ liệu của từng trang
+
                 res.Success = true;
-                res.Data = pagingData;
+                res.Data = new PagingData()
+                {
+                    TotalRecord = records.Count(),
+                    TotalPage = Convert.ToInt32(Math.Ceiling((decimal)records.Count() / (decimal)record.Value)),
+                    Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(),
+                };
                 res.StatusCode = HttpStatusCode.OK;
-                return res;
             }
-            res.Success = false;
-            res.Message = Message.NotAuthorize;
-            res.ErrorCode = 401;
-            res.StatusCode = HttpStatusCode.Unauthorized;
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
             return res;
         }
-        
+
         /// <summary>
         /// Lấy chi tiết thông tin tài khoản
         /// </summary>
@@ -127,52 +133,28 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
                 if (string.IsNullOrEmpty(systemUser.Username))
                 {
-                    res.Message = Message.UserNameEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.UserNameEmpty);
                 }
                 if (string.IsNullOrEmpty(systemUser.UserUsername))
                 {
-                    res.Message = Message.UserLoginNameEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.UserLoginNameEmpty);
                 }
                 if (string.IsNullOrEmpty(systemUser.UserPassword))
                 {
-                    res.Message = Message.UserPasswordEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.UserPasswordEmpty);
                 }
                 var find_user = await _db.SystemUser
                   .Where(item => item.UserUsername.Equals(systemUser.UserUsername))
                   .FirstOrDefaultAsync();
                 if (find_user != null)
                 {
-                    res.Message = Message.UserLoginNameExist;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.UserLoginNameExist);
                 }
 
                 systemUser.SystemUserId = Guid.NewGuid();
@@ -205,10 +187,7 @@ namespace Edu_Mgmt_BE.Controllers
             }
             catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }

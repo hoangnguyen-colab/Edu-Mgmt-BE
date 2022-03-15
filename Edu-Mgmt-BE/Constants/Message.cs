@@ -11,6 +11,8 @@ namespace Edu_Mgmt_BE.Constants
         public const string SuccessMsg = "Thành công";
         public const string ErrorMsg = "Có lỗi xảy ra";
         public const string TitleError = "Tiêu đề không thể trống";
+        public const string NotFound = "Không tìm thấy";
+        public const string BadRequest = "Không hợp lệ";
 
         //Xử lý message tài khoản
         public const string NotAuthorize = "Bạn không có quyền này";

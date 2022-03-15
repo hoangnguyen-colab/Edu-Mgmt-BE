@@ -58,20 +58,19 @@ namespace Edu_Mgmt_BE.Controllers
                 {
                     records = await _db.SchoolYear.OrderByDescending(x => x.SchoolYearName).ToListAsync();
                 }
-                pagingData.TotalRecord = records.Count(); //Tổng số bản ghi
-                pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value)); //Tổng số trang
-                pagingData.Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(); //Dữ liệu của từng trang
 
                 res.Success = true;
+                res.Data = new PagingData()
+                {
+                    TotalRecord = records.Count(),
+                    TotalPage = Convert.ToInt32(Math.Ceiling((decimal)records.Count() / (decimal)record.Value)),
+                    Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(),
+                };
                 res.StatusCode = HttpStatusCode.OK;
-                res.Data = pagingData;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                res.Message = Message.ErrorMsg;
-                res.Success = false;
-                res.ErrorCode = 500;
-                res.StatusCode = HttpStatusCode.InternalServerError;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
@@ -87,33 +86,19 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
                 if (string.IsNullOrEmpty(schoolYear.ActiveYear))
                 {
-                    res.Message = Message.SchoolYearDateEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearDateEmpty);
                 }
 
                 var find_year = await _db.SchoolYear.Where(item => item.ActiveYear.Equals(schoolYear.ActiveYear)).FirstOrDefaultAsync();
                 if (find_year != null)
                 {
-                    res.Message = Message.SchoolYearExist;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearExist);
                 }
 
                 schoolYear.SchoolYearId = Guid.NewGuid();
@@ -147,11 +132,7 @@ namespace Edu_Mgmt_BE.Controllers
             var year = await _db.SchoolYear.FindAsync(id);
             if (year == null)
             {
-                res.Message = Message.SchoolYearNotFound;
-                res.ErrorCode = 404;
-                res.Success = false;
-                res.Data = null;
-                res.StatusCode = HttpStatusCode.NotFound;
+                return ErrorHandler.NotFoundResponse(Message.SchoolYearNotFound);
             }
             Dictionary<string, object> result = new Dictionary<string, object>();
             result.Add("year", year);
@@ -173,23 +154,14 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
                 var year = await _db.SchoolYear.FindAsync(id);
                 if (year == null)
                 {
-                    res.Message = Message.SchoolYearNotFound;
-                    res.ErrorCode = 404;
-                    res.Success = false;
-                    res.Data = null;
-                    res.StatusCode = HttpStatusCode.NotFound;
-                    return res;
+                    return ErrorHandler.NotFoundResponse(Message.SchoolYearNotFound);
                 }
                 _db.SchoolYear.Remove(year);
                 res.Success = true;
@@ -215,34 +187,19 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin"))
             {
-                res.Success = false;
-                res.Message = Message.NotAuthorize;
-                res.ErrorCode = 401;
-                res.StatusCode = HttpStatusCode.Unauthorized;
-                return res;
+                return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
                 var yearResult = await _db.SchoolYear.FindAsync(id);
                 if (yearResult == null)
                 {
-                    res.Message = Message.SchoolYearNotFound;
-                    res.ErrorCode = 404;
-                    res.Success = false;
-                    res.Data = null;
-                    res.StatusCode = HttpStatusCode.NotFound;
-
-                    return res;
+                    return ErrorHandler.NotFoundResponse(Message.SchoolYearNotFound);
                 }
 
                 if (string.IsNullOrEmpty(schoolYear.ActiveYear))
                 {
-                    res.Message = Message.SchoolYearDateEmpty;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearDateEmpty);
                 }
 
                 var find_year = await _db.SchoolYear
@@ -250,12 +207,7 @@ namespace Edu_Mgmt_BE.Controllers
                     .FirstOrDefaultAsync();
                 if (find_year != null)
                 {
-                    res.Message = Message.SchoolYearExist;
-                    res.Success = false;
-                    res.ErrorCode = 400;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearExist);
                 }
 
                 yearResult.ActiveYear = schoolYear.ActiveYear.Trim();

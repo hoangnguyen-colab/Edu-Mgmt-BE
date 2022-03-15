@@ -22,5 +22,44 @@ namespace Edu_Mgmt_BE.Utils
             };
             return res;
         }
+
+        public static ServiceResponse UnauthorizeCatchResponse()
+        {
+            ServiceResponse res = new ServiceResponse()
+            {
+                Data = null,
+                Success = false,
+                Message = Message.NotAuthorize,
+                ErrorCode = 401,
+                StatusCode = HttpStatusCode.Unauthorized,
+            };
+            return res;
+        }
+
+        public static ServiceResponse NotFoundResponse(string errorMessage = Message.NotFound)
+        {
+            ServiceResponse res = new ServiceResponse()
+            {
+                Data = null,
+                Success = false,
+                Message = errorMessage,
+                ErrorCode = 404,
+                StatusCode = HttpStatusCode.NotFound,
+            };
+            return res;
+        }
+
+        public static ServiceResponse BadRequestResponse(string errorMessage = Message.BadRequest)
+        {
+            ServiceResponse res = new ServiceResponse()
+            {
+                Data = null,
+                Success = false,
+                Message = errorMessage,
+                ErrorCode = 400,
+                StatusCode = HttpStatusCode.BadRequest,
+            };
+            return res;
+        }
     }
 }
