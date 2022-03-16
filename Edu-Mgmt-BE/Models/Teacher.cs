@@ -13,19 +13,16 @@ namespace Edu_Mgmt_BE.Models
     {
         public Teacher()
         {
-            ClassDetail = new HashSet<ClassDetail>();
+            Class = new HashSet<Class>();
         }
 
         public Guid TeacherId { get; set; }
-        public string ShowTeacherId { get; set; }
         public string TeacherName { get; set; }
-        public string TeacherGender { get; set; }
-        public string TeacherDOB { get; set; }
-        public string TeacherImage { get; set; }
-        public string TeacherDescription { get; set; }
-        public string TeacherEmail { get; set; }
         public string TeacherPhone { get; set; }
-        public string TeacherAddress { get; set; }
+        public string TeacherGender { get; set; }
+        public string TeacherDob { get; set; }
+        public string TeacherImage { get; set; }
+        public string TeacherEmail { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifyDate { get; set; }
         public DateTime? CreatedUser { get; set; }
@@ -33,6 +30,6 @@ namespace Edu_Mgmt_BE.Models
 
         [JsonIgnore]
         [IgnoreDataMember]
-        public virtual ICollection<ClassDetail> ClassDetail { get; set; }
+        public virtual ICollection<Class> Class { get; set; }
     }
 }

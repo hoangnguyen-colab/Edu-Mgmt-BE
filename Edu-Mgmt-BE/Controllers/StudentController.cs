@@ -30,6 +30,11 @@ namespace Edu_Mgmt_BE.Controllers
         private static IWebHostEnvironment _environment;
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
+        private const string sql_get_student = "select * from Student where " +
+              "CHARINDEX(@txtSeach, StudentName) > 0 or " +
+              "CHARINDEX(@txtSeach, TeacherEmail) or" +
+              "CHARINDEX(@txtSeach, StudentGender) or" +
+              "CHARINDEX(@txtSeach, StudentDOB)";
 
         public StudentController(EduManagementContext context,
             IJwtAuthenticationManager jwtAuthenticationManager,
@@ -65,10 +70,9 @@ namespace Edu_Mgmt_BE.Controllers
 
                 if (search != null && search.Trim() != "")
                 {
-                    string sql_get_account = "select * from Student where CHARINDEX(@txtSeach, StudentName) > 0";
                     var param = new SqlParameter("@txtSeach", search);
                     records = _db.Student
-                        .FromSqlRaw(sql_get_account, param)
+                        .FromSqlRaw(sql_get_student, param)
                         .OrderByDescending(x => x.CreatedDate)
                         .ToList();
                 }
@@ -126,104 +130,7 @@ namespace Edu_Mgmt_BE.Controllers
         [HttpPost]
         public async Task<ServiceResponse> AddStudent(AddStudentRequest studentReq)
         {
-            ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
-            {
-                return ErrorHandler.UnauthorizeCatchResponse();
-            }
-            try
-            {
-                if (string.IsNullOrEmpty(studentReq.StudentName))
-                {
-                    return ErrorHandler.BadRequestResponse(Message.StudentNameEmpty);
-                }
-                if (string.IsNullOrEmpty(studentReq.StudentPhone))
-                {
-                    return ErrorHandler.BadRequestResponse(Message.StudentPhoneEmpty);
-                }
-                ClassDetail classDetail = null;
-                if (!string.IsNullOrEmpty(studentReq.ClassId.ToString()))
-                {
-                    var classResult = await _db.Class.FindAsync(studentReq.ClassId);
-                    if (classResult == null)
-                    {
-                        return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
-                    }
-                    var yearResult = await _db.SchoolYear.FindAsync(studentReq.SchoolYearId);
-                    if (classResult == null)
-                    {
-                        return ErrorHandler.NotFoundResponse(Message.SchoolYearNotFound);
-                    }
-
-                    classDetail = await _db.ClassDetail
-                        .Where(item => studentReq.ClassId.Equals(item.ClassId)
-                        && studentReq.SchoolYearId.Equals(item.SchoolYearId))
-                        .FirstOrDefaultAsync();
-                    if (classDetail == null)
-                    {
-                        classDetail = new ClassDetail()
-                        {
-                            ClassDetailId = Guid.NewGuid(),
-                            SchoolYearId = studentReq.SchoolYearId.Value,
-                        };
-                        //_db.ClassDetail.Add(classDetail);
-                    }
-                }
-                Student student = new Student()
-                {
-                    ShowStudentId = Helper.GenerateStudentID(_db.Student.Count() + 1),
-                    StudentId = Guid.NewGuid(),
-                    StudentName = studentReq.StudentName.Trim(),
-                    StudentGender = studentReq.StudentGender?.Trim() ?? "",
-                    StudentAddress = studentReq.StudentAddress?.Trim() ?? "",
-                    StudentImage = studentReq.StudentImage?.Trim() ?? "",
-                    StudentDOB = studentReq.StudentDOB?.Trim() ?? "",
-                    StudentDescription = studentReq.StudentDescription?.Trim() ?? "",
-                    StudentPhone = studentReq.StudentPhone.Trim(),
-                };
-                _db.Student.Add(student);
-
-                SystemUser sysUser = new SystemUser
-                {
-                    SystemUserId = Guid.NewGuid(),
-                    Username = student.StudentName,
-                    UserUsername = student.ShowStudentId.ToLower(),
-                    UserPassword = Helper.EncodeMD5(student.ShowStudentId.ToLower()),
-                };
-                _db.SystemUser.Add(sysUser);
-
-                UserDetail sysUserDetail = new UserDetail
-                {
-                    UserDetailId = Guid.NewGuid(),
-                    UserId = student.StudentId,
-                    SystemRoleId = 3,
-                    SystemUserId = sysUser.SystemUserId,
-                };
-                _db.UserDetail.Add(sysUserDetail);
-
-                var role = await _db.SystemRole.FindAsync(3);
-
-                if (classDetail != null)
-                {
-                    classDetail.StudentId = student.StudentId;
-                }
-
-                Dictionary<string, object> result = new Dictionary<string, object>();
-                result.Add("student", student);
-                result.Add("studentAccount", sysUser);
-                result.Add("role", role);
-                result.Add("classDetail", classDetail);
-                await _db.SaveChangesAsync();
-
-                res.Success = true;
-                res.Data = result;
-                res.StatusCode = HttpStatusCode.OK;
-            }
-            catch (Exception e)
-            {
-                res = ErrorHandler.ErrorCatchResponse(e);
-            }
-            return res;
+            return await UserCreator.StudentCreate(studentReq, "");
         }
 
         /// <summary>
@@ -335,12 +242,9 @@ namespace Edu_Mgmt_BE.Controllers
                 studentResult.StudentName = student.StudentName.Trim();
                 studentResult.StudentImage = student.StudentImage?.Trim();
                 studentResult.StudentPhone = student.StudentPhone?.Trim();
-                studentResult.StudentDOB = student.StudentDOB?.Trim();
+                studentResult.StudentDob = student.StudentDob?.Trim();
                 studentResult.StudentGender = student.StudentGender?.Trim();
-                studentResult.StudentDescription = student.StudentDescription?.Trim();
-                studentResult.StudentAddress = student.StudentAddress?.Trim();
                 studentResult.StudentImage = student.StudentImage?.Trim();
-                studentResult.ShowStudentId = student.ShowStudentId?.Trim();
                 studentResult.ModifyDate = DateTime.Now;
 
                 var role = await _db.SystemRole.FindAsync(3);

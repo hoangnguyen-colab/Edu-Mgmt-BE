@@ -58,14 +58,18 @@ namespace Edu_Mgmt_BE.Constants
         public const string TeacherNotFound = "Không tìm thấy giáo viên này";
         public const string TeacherExist = "Giáo viên đã tồn tại";
         public const string TeacherNameEmpty = "Tên giáo viên không thể trống";
+        public const string TeacherPhoneEmpty = "Tên giáo viên không thể trống";
+        public const string TeacherPhoneExist = "Số điện thoại đã tồn tại";
         public const string TeacherIdEmpty = "Mã giáo viên không thể trống";
+        public const string TeacherIdBadRequest = "Mã giáo viên không hợp lệ";
         public const string TeacherIdExist = "Mã giáo viên đã tồn tại";
 
         //Xử lý message School Year
-        public const string SchoolYearNameEmpty = "Tên năm/khóa học không thể trống";
-        public const string SchoolYearDateEmpty = "Năm/khóa học không thể trống";
-        public const string SchoolYearExist = "Năm/khóa học đã tồn tại";
+        public const string SchoolYearNameEmpty = "Tên năm học không thể trống";
+        public const string SchoolYearDateEmpty = "Năm học không thể trống";
+        public const string SchoolYearExist = "Năm học đã tồn tại";
         public const string SchoolYearNotFound = "Không tìm năm học này";
+        public const string SchoolYearBadRequest = "Năm học không hợp lệ này";
 
         public const string ProductLogChange = "Thay đổi thông tin sản phẩm";
         public const string ProductLogDelete = "Xóa sản phẩm";

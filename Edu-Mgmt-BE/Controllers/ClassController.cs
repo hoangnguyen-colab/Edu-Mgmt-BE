@@ -23,8 +23,8 @@ namespace Edu_Mgmt_BE.Controllers
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
-        private const string TeacherClassQuery = "SELECT DISTINCT Class.* FROM Class JOIN ClassDetail  ON Class.ClassId = ClassDetail.ClassId JOIN Teacher ON ClassDetail.TeacherId = @teacherId";
-        private const string TeacherClassQuerySearch = "SELECT * FROM  (SELECT DISTINCT Class.* FROM Class JOIN ClassDetail  ON Class.ClassId = ClassDetail.ClassId JOIN Teacher ON ClassDetail.TeacherId = @teacherId) class where CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
+        private const string TeacherClassQuery = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId";
+        private const string TeacherClassQuerySearch = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId AND CHARINDEX(@txtSeach, ClassName) > 0";
         private const string SearchClassQuery = "SELECT * FROM Class WHERE CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
 
         public ClassController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
@@ -62,8 +62,7 @@ namespace Edu_Mgmt_BE.Controllers
                     }
                     else
                     {
-                        var paramId = new SqlParameter("@teacherId", teacherId);
-                        records = _db.Class.FromSqlRaw(TeacherClassQuery, paramId).OrderByDescending(x => x.CreatedDate).ToList();
+                        records = _db.Class.Where(item => item.TeacherId.Equals(teacherId)).ToList();
                     }
                 }
                 else
@@ -104,33 +103,40 @@ namespace Edu_Mgmt_BE.Controllers
         public async Task<ServiceResponse> AddClass(Class classObj)
         {
             ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin"))
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
             {
                 return ErrorHandler.UnauthorizeCatchResponse();
             }
             try
             {
+                var teacherId = Helper.getTeacherId(HttpContext);
+                if(string.IsNullOrEmpty(teacherId?.ToString()))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.TeacherIdBadRequest);
+                }
+                var teacher_result = _db.Teacher.Find(teacherId);
+                if (teacher_result == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.TeacherNotFound);
+                }
                 if (string.IsNullOrEmpty(classObj.ClassName))
                 {
                     return ErrorHandler.BadRequestResponse(Message.ClassNameEmpty);
                 }
-
-                //if (string.IsNullOrEmpty(classObj.ShowClassId))
-                //{
-                //    return ErrorHandler.BadRequestResponse(Message.ClassIdEmpty);
-                //}
+                if (string.IsNullOrEmpty(classObj.ClassYear))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearDateEmpty);
+                }
+                int schoolYear;
+                if (!int.TryParse(classObj.ClassYear, out schoolYear))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearBadRequest);
+                }
 
                 classObj.ClassId = Guid.NewGuid();
                 classObj.ClassName = classObj.ClassName.Trim();
-                classObj.ShowClassId = classObj.ClassName;
-
-                var find_class = await _db.Class
-                    .Where(item => item.ClassName.Equals(classObj.ClassName))
-                    .FirstOrDefaultAsync();
-                if (find_class != null)
-                {
-                    return ErrorHandler.BadRequestResponse(Message.ClassExist);
-                }
+                classObj.ClassYear = schoolYear + "-" + (schoolYear + 1);
+                classObj.TeacherId = teacherId.Value;
 
                 _db.Class.Add(classObj);
                 await _db.SaveChangesAsync();
@@ -213,7 +219,7 @@ namespace Edu_Mgmt_BE.Controllers
         public async Task<ServiceResponse> EditClass(Guid id, Class classObj)
         {
             ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin"))
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
             {
                 return ErrorHandler.UnauthorizeCatchResponse();
             }
@@ -230,85 +236,24 @@ namespace Edu_Mgmt_BE.Controllers
                     return ErrorHandler.BadRequestResponse(Message.ClassNameEmpty);
                 }
 
-                var find_class = await _db.Class
-                    .Where(item => item.ClassName.Equals(classObj.ClassName))
-                    .FirstOrDefaultAsync();
-                if (find_class != null)
+                if (string.IsNullOrEmpty(classObj.ClassYear))
                 {
-                    return ErrorHandler.BadRequestResponse(Message.ClassExist);
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearDateEmpty);
+                }
+                int schoolYear;
+                if (!int.TryParse(classObj.ClassYear, out schoolYear))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.SchoolYearBadRequest);
                 }
 
                 classResult.ClassName = classObj.ClassName.Trim();
-                classResult.ShowClassId = classObj.ClassName.Trim();
+                classResult.ClassYear = schoolYear + "-" + (schoolYear + 1);
                 classResult.ModifyDate = DateTime.Now;
 
                 await _db.SaveChangesAsync();
 
                 res.Success = true;
                 res.Data = classResult;
-                res.StatusCode = HttpStatusCode.OK;
-            }
-            catch (Exception e)
-            {
-                res = ErrorHandler.ErrorCatchResponse(e);
-            }
-            return res;
-        }
-
-        /// <summary>
-        /// Phân lớp
-        /// </summary>
-        /// <param name="ClassDetail"></param>
-        /// <returns></returns>
-        [HttpPost("assign-class")]
-        public async Task<ServiceResponse> AssignClass(ClassDetail classDetail)
-        {
-            ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin"))
-            {
-                return ErrorHandler.UnauthorizeCatchResponse();
-            }
-            try
-            {
-                if(string.IsNullOrEmpty(classDetail.ClassId.ToString()))
-                {
-                    return ErrorHandler.BadRequestResponse(Message.ClassIdEmpty);
-                }
-                if (string.IsNullOrEmpty(classDetail.TeacherId.ToString()))
-                {
-                    return ErrorHandler.BadRequestResponse(Message.TeacherIdEmpty);
-                }
-                
-                var classResult = await _db.Class.FindAsync(classDetail.ClassId);
-                if (classResult == null)
-                {
-                    return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
-                }
-                var yearResult = await _db.SchoolYear.FindAsync(classDetail.SchoolYearId);
-                if (classResult == null)
-                {
-                    return ErrorHandler.NotFoundResponse(Message.SchoolYearNotFound);
-                }
-
-                var teacherResult = await _db.Teacher.FindAsync(classDetail.TeacherId);
-                if (teacherResult == null)
-                {
-                    return ErrorHandler.NotFoundResponse(Message.TeacherNotFound);
-                }
-
-                classDetail.StudentId = null;
-                classDetail.ClassDetailId = Guid.NewGuid();
-
-                Dictionary<string, object> result = new Dictionary<string, object>();
-                result.Add("classResult", classResult);
-                result.Add("teacherResult", teacherResult);
-                result.Add("classDetail", classDetail);
-
-                _db.ClassDetail.Add(classDetail);
-                await _db.SaveChangesAsync();
-
-                res.Success = true;
-                res.Data = result;
                 res.StatusCode = HttpStatusCode.OK;
             }
             catch (Exception e)

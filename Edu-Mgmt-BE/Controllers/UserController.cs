@@ -2,6 +2,7 @@
 using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
+using Edu_Mgmt_BE.Models.CustomModel.Student;
 using Edu_Mgmt_BE.Models.CustomModel.User;
 using Edu_Mgmt_BE.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -111,6 +112,44 @@ namespace Edu_Mgmt_BE.Controllers
         }
 
         /// <summary>
+        /// Lấy chi tiết thông tin tài khoản đang dùng
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("detail")]
+        public async Task<ServiceResponse> GetAccount()
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                var userId = Helper.getUserId(HttpContext);
+                var account = await _db.SystemUser.FindAsync(userId);
+                if (account == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.AccountNotFound);
+                }
+                account.UserPassword = null;
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                result.Add("account", account);
+
+                string sql_get_role = $"select * from SystemRole where RoleId in (select distinct SystemRoleId from UserDetail where SystemUserId = @SystemUserId)";
+                var roles = await _db.SystemRole
+                    .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
+                    .ToListAsync();
+                result.Add("roles", roles);
+
+                res.Data = result;
+                res.Success = true;
+                res.StatusCode = HttpStatusCode.OK;
+            } catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            
+            return res;
+        }
+
+        /// <summary>
         /// Đăng nhập
         /// </summary>
         /// <param username="" password=""></param>
@@ -127,69 +166,38 @@ namespace Edu_Mgmt_BE.Controllers
         /// </summary>
         /// <param SystemUser="SystemUser"></param>
         /// <returns></returns>
-        [HttpPost("create-user")]
-        public async Task<ServiceResponse> CreateAdmin(SystemUser systemUser)
+        [HttpPost("sign-up")]
+        public async Task<ServiceResponse> CreateUser(UserSignUp userSignUp)
         {
             ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin"))
-            {
-                return ErrorHandler.UnauthorizeCatchResponse();
-            }
             try
             {
-                if (string.IsNullOrEmpty(systemUser.Username))
+                if (userSignUp.RoleId == 2) //teacher
                 {
-                    return ErrorHandler.BadRequestResponse(Message.UserNameEmpty);
+                    Teacher teacher = new Teacher()
+                    {
+                        TeacherName = userSignUp.UserName,
+                        TeacherPhone = userSignUp.UserPhone,
+                        TeacherEmail = userSignUp.UserEmail
+                    };
+                    res = await UserCreator.TeacherCreate(teacher, userSignUp.UserPassword);
                 }
-                if (string.IsNullOrEmpty(systemUser.UserUsername))
+                if (userSignUp.RoleId == 3) //student
                 {
-                    return ErrorHandler.BadRequestResponse(Message.UserLoginNameEmpty);
-                }
-                if (string.IsNullOrEmpty(systemUser.UserPassword))
-                {
-                    return ErrorHandler.BadRequestResponse(Message.UserPasswordEmpty);
-                }
-                var find_user = await _db.SystemUser
-                  .Where(item => item.UserUsername.Equals(systemUser.UserUsername))
-                  .FirstOrDefaultAsync();
-                if (find_user != null)
-                {
-                    return ErrorHandler.BadRequestResponse(Message.UserLoginNameExist);
+                    AddStudentRequest student = new AddStudentRequest()
+                    {
+                        StudentName = userSignUp.UserName,
+                        StudentPhone = userSignUp.UserPhone
+                    };
+                    res = await UserCreator.StudentCreate(student, userSignUp.UserPassword);
                 }
 
-                systemUser.SystemUserId = Guid.NewGuid();
-                systemUser.Username = systemUser.Username.Trim();
-                systemUser.UserUsername = systemUser.UserUsername.Trim();
-                systemUser.UserPassword = Helper.EncodeMD5(systemUser.UserPassword.Trim());
-                _db.SystemUser.Add(systemUser);
-
-                UserDetail sysUserDetail = new UserDetail
-                {
-                    UserDetailId = Guid.NewGuid(),
-                    UserId = null,
-                    SystemRoleId = 1,
-                    SystemUserId = systemUser.SystemUserId,
-                };
-                _db.UserDetail.Add(sysUserDetail);
-
-                var role = await _db.SystemRole.FindAsync(1);
-
-                Dictionary<string, object> result = new Dictionary<string, object>();
-                result.Add("systemUser", systemUser);
-                result.Add("userDetail", sysUserDetail);
-                result.Add("role", role);
-                await _db.SaveChangesAsync();
-
-                res.Success = true;
-                res.Data = result;
-                res.StatusCode = HttpStatusCode.OK;
-
+                return res;
             }
             catch (Exception e)
             {
-                res = ErrorHandler.ErrorCatchResponse(e);
+                return ErrorHandler.ErrorCatchResponse(e);
             }
-            return res;
         }
     }
 }

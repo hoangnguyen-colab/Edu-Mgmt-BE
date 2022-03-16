@@ -23,7 +23,12 @@ namespace Edu_Mgmt_BE.Controllers
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
-
+        private const string sql_get_teacher = "select * from Teacher where " +
+            "CHARINDEX(@txtSeach, TeacherName) > 0 or " +
+            "CHARINDEX(@txtSeach, TeacherEmail) or" +
+            "CHARINDEX(@txtSeach, TeacherPhone) or" +
+            "CHARINDEX(@txtSeach, TeacherGender) or" +
+            "CHARINDEX(@txtSeach, TeacherDOB)";
         public TeacherController(EduManagementContext context,
             IJwtAuthenticationManager jwtAuthenticationManager
             )
@@ -55,16 +60,10 @@ namespace Edu_Mgmt_BE.Controllers
 
                 if (search != null && search.Trim() != "")
                 {
-                    string sql_get_account = "select * from Teacher where " +
-                        "CHARINDEX(@txtSeach, TeacherName) > 0 or " +
-                        "CHARINDEX(@txtSeach, TeacherEmail) or" +
-                        "CHARINDEX(@txtSeach, TeacherPhone) or" +
-                        "CHARINDEX(@txtSeach, ShowTeacherId) or" +
-                        "CHARINDEX(@txtSeach, TeacherAddress)";
 
                     var param = new SqlParameter("@txtSeach", search);
                     records = _db.Teacher
-                        .FromSqlRaw(sql_get_account, param)
+                        .FromSqlRaw(sql_get_teacher, param)
                         .OrderByDescending(x => x.CreatedDate)
                         .ToList();
                 }
@@ -124,7 +123,7 @@ namespace Edu_Mgmt_BE.Controllers
                 var role = await _db.SystemRole.FindAsync(2);
 
                 result.Add("teacher", teacher);
-                result.Add("teacher-account", teacherAccount);
+                result.Add("teacherAccount", teacherAccount);
                 result.Add("role", role);
 
                 res.Data = result;
@@ -146,59 +145,7 @@ namespace Edu_Mgmt_BE.Controllers
         [HttpPost]
         public async Task<ServiceResponse> AddTeacher(Teacher teacher)
         {
-            ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin"))
-            {
-                return ErrorHandler.UnauthorizeCatchResponse();
-            }
-            try
-            {
-                if (string.IsNullOrEmpty(teacher.TeacherName))
-                {
-                    return ErrorHandler.BadRequestResponse(Message.TeacherNameEmpty);
-                }
-
-                teacher.TeacherId = Guid.NewGuid();
-                teacher.TeacherName = teacher.TeacherName.Trim();
-                teacher.ShowTeacherId = Helper.GenerateTeacherID(_db.Teacher.Count() + 1);
-                _db.Teacher.Add(teacher);
-
-                SystemUser sysUser = new SystemUser
-                {
-                    SystemUserId = Guid.NewGuid(),
-                    Username = teacher.TeacherName,
-                    UserUsername = teacher.ShowTeacherId.ToLower(),
-                    UserPassword = Helper.EncodeMD5(teacher.ShowTeacherId.ToLower()),
-                };
-                _db.SystemUser.Add(sysUser);
-
-                UserDetail sysUserDetail = new UserDetail
-                {
-                    UserDetailId = Guid.NewGuid(),
-                    UserId = teacher.TeacherId,
-                    SystemRoleId = 2,
-                    SystemUserId = sysUser.SystemUserId,
-                };
-                _db.UserDetail.Add(sysUserDetail);
-
-                var role = await _db.SystemRole.FindAsync(2);
-
-                Dictionary<string, object> result = new Dictionary<string, object>();
-                result.Add("teacher", teacher);
-                result.Add("teacherAccount", sysUser);
-                result.Add("role", role);
-
-                res.Success = true;
-                res.Data = result;
-                res.StatusCode = HttpStatusCode.OK;
-
-                await _db.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                res = ErrorHandler.ErrorCatchResponse(e);
-            }
-            return res;
+            return await UserCreator.TeacherCreate(teacher, "");
         }
 
         /// <summary>
@@ -265,8 +212,6 @@ namespace Edu_Mgmt_BE.Controllers
                 teacherResult.TeacherName = teacher.TeacherName.Trim();
                 teacherResult.TeacherImage = teacher.TeacherImage?.Trim();
                 teacherResult.TeacherEmail = teacher.TeacherEmail?.Trim();
-                teacherResult.TeacherPhone = teacher.TeacherPhone?.Trim();
-                teacherResult.TeacherAddress = teacher.TeacherAddress?.Trim();
                 teacherResult.ModifyDate = DateTime.Now;
 
                 var role = await _db.SystemRole.FindAsync(2);

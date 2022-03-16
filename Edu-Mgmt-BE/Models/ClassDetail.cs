@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
 // If you have enabled NRTs for your project, then un-comment the following line:
@@ -12,22 +10,9 @@ namespace Edu_Mgmt_BE.Models
     public partial class ClassDetail
     {
         public Guid ClassDetailId { get; set; }
-        public Guid SchoolYearId { get; set; }
-        public Guid TeacherId { get; set; }
-        public Guid? StudentId { get; set; }
+        public Guid StudentId { get; set; }
         public Guid ClassId { get; set; }
 
-        [JsonIgnore]
-        [IgnoreDataMember]
         public virtual Class Class { get; set; }
-        [JsonIgnore]
-        [IgnoreDataMember]
-        public virtual SchoolYear SchoolYear { get; set; }
-        [JsonIgnore]
-        [IgnoreDataMember]
-        public virtual Student Student { get; set; }
-        [JsonIgnore]
-        [IgnoreDataMember]
-        public virtual Teacher Teacher { get; set; }
     }
 }

@@ -17,12 +17,18 @@ namespace Edu_Mgmt_BE.Models
         }
 
         public Guid ClassId { get; set; }
-        public string ShowClassId { get; set; }
         public string ClassName { get; set; }
+        public string ClassYear { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifyDate { get; set; }
         public DateTime? CreatedUser { get; set; }
         public DateTime? ModifyUser { get; set; }
+        public Guid TeacherId { get; set; }
+
+        [JsonIgnore]
+        [IgnoreDataMember]
+        public virtual Teacher Teacher { get; set; }
+
 
         [JsonIgnore]
         [IgnoreDataMember]
