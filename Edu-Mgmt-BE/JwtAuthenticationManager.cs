@@ -14,6 +14,7 @@ using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
 using System.Threading.Tasks;
 using System.Net;
+using Edu_Mgmt_BE.Utils;
 
 namespace Edu_Mgmt_BE
 {
@@ -36,11 +37,7 @@ namespace Edu_Mgmt_BE
                     .FirstOrDefaultAsync();
                 if (accountResult == null)
                 {
-                    res.Message = Constants.Message.LoginIncorrect;
-                    res.Success = true;
-                    res.Data = null;
-                    res.StatusCode = HttpStatusCode.BadRequest;
-                    return res;
+                    return ErrorHandler.BadRequestResponse(Constants.Message.LoginIncorrect);
                 }
                 accountResult.UserPassword = null;
                 string sql_get_role = $"select * from SystemRole where RoleId in (select distinct SystemRoleId from UserDetail where SystemUserId = @SystemUserId)";
@@ -58,11 +55,7 @@ namespace Edu_Mgmt_BE
             }
             catch (Exception e)
             {
-                res.Message = Constants.Message.ErrorMsg;
-                res.Success = true;
-                res.Data = e;
-                res.StatusCode = HttpStatusCode.InternalServerError;
-                return res;
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
