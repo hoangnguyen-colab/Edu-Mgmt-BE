@@ -7,11 +7,10 @@ using System.Collections.Generic;
 
 namespace Edu_Mgmt_BE.Models
 {
-    public partial class SystemUser
+    public partial class Participant
     {
-        public Guid SystemUserId { get; set; }
-        public string Username { get; set; }
-        public string UserUsername { get; set; }
-        public string UserPassword { get; set; }
+        public Guid ParticipantId { get; set; }
+        public string ParticipantName { get; set; }
+        public string ParticipantPhone { get; set; }
     }
 }

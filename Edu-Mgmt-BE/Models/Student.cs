@@ -10,14 +10,10 @@ namespace Edu_Mgmt_BE.Models
     public partial class Student
     {
         public Guid StudentId { get; set; }
-        public string StudentPhone { get; set; }
         public string StudentName { get; set; }
+        public string StudentPhone { get; set; }
         public string StudentGender { get; set; }
         public string StudentDob { get; set; }
         public string StudentImage { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public DateTime? ModifyDate { get; set; }
-        public DateTime? CreatedUser { get; set; }
-        public DateTime? ModifyUser { get; set; }
     }
 }

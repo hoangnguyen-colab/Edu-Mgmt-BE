@@ -58,7 +58,10 @@ namespace Edu_Mgmt_BE.Controllers
                     {
                         var paramId = new SqlParameter("@teacherId", teacherId);
                         var paramSearch = new SqlParameter("@txtSeach", search);
-                        records = _db.Class.FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch).OrderByDescending(x => x.CreatedDate).ToList();
+                        records = _db.Class
+                            .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
+                            .OrderByDescending(x => x.ClassName)
+                            .ToList();
                     }
                     else
                     {
@@ -70,11 +73,11 @@ namespace Edu_Mgmt_BE.Controllers
                     if (search != null && search.Trim() != "")
                     {
                         var param = new SqlParameter("@txtSeach", search);
-                        records = _db.Class.FromSqlRaw(SearchClassQuery, param).OrderByDescending(x => x.CreatedDate).ToList();
+                        records = _db.Class.FromSqlRaw(SearchClassQuery, param).OrderByDescending(x => x.ClassName).ToList();
                     }
                     else
                     {
-                        records = await _db.Class.OrderByDescending(x => x.CreatedDate).ToListAsync();
+                        records = await _db.Class.OrderByDescending(x => x.ClassName).ToListAsync();
                     }
                 }
 
@@ -248,7 +251,6 @@ namespace Edu_Mgmt_BE.Controllers
 
                 classResult.ClassName = classObj.ClassName.Trim();
                 classResult.ClassYear = schoolYear + "-" + (schoolYear + 1);
-                classResult.ModifyDate = DateTime.Now;
 
                 await _db.SaveChangesAsync();
 

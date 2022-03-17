@@ -73,13 +73,13 @@ namespace Edu_Mgmt_BE.Controllers
                     var param = new SqlParameter("@txtSeach", search);
                     records = _db.Student
                         .FromSqlRaw(sql_get_student, param)
-                        .OrderByDescending(x => x.CreatedDate)
+                        .OrderByDescending(x => x.StudentName)
                         .ToList();
                 }
                 else
                 {
                     records = await _db.Student
-                        .OrderByDescending(x => x.CreatedDate)
+                        .OrderByDescending(x => x.StudentName)
                         .ToListAsync();
                 }
 
@@ -245,7 +245,6 @@ namespace Edu_Mgmt_BE.Controllers
                 studentResult.StudentDob = student.StudentDob?.Trim();
                 studentResult.StudentGender = student.StudentGender?.Trim();
                 studentResult.StudentImage = student.StudentImage?.Trim();
-                studentResult.ModifyDate = DateTime.Now;
 
                 var role = await _db.SystemRole.FindAsync(3);
 

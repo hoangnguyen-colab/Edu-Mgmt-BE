@@ -7,11 +7,13 @@ using System.Collections.Generic;
 
 namespace Edu_Mgmt_BE.Models
 {
-    public partial class SystemUser
+    public partial class AnswerFileDetail
     {
-        public Guid SystemUserId { get; set; }
-        public string Username { get; set; }
-        public string UserUsername { get; set; }
-        public string UserPassword { get; set; }
+        public Guid FileUploadDetailId { get; set; }
+        public Guid FileUploadId { get; set; }
+        public Guid AnswerId { get; set; }
+
+        public virtual Answer Answer { get; set; }
+        public virtual FileUpload FileUpload { get; set; }
     }
 }

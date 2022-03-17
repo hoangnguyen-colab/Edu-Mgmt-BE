@@ -93,7 +93,7 @@ namespace Edu_Mgmt_BE.Common
                 var teacher = _db.Teacher
                     .FromSqlRaw(sql_get_teacher_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
 
-                return teacher.TeacherId;
+                return teacher?.TeacherId;
             }
             return null;
         }

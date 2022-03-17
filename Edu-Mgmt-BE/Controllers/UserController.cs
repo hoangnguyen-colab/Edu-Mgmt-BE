@@ -54,11 +54,11 @@ namespace Edu_Mgmt_BE.Controllers
                     //CHARINDEX tìm không phân biệt hoa thường trả về vị trí đầu tiên xuất hiện của chuỗi con
                     string sql_get_account = "select * from SystemUser where CHARINDEX(@txtSeach, Username) > 0 or CHARINDEX(@txtSeach, UserUsername) > 0";
                     var param = new SqlParameter("@txtSeach", search);
-                    records = _db.SystemUser.FromSqlRaw(sql_get_account, param).OrderByDescending(x => x.CreatedDate).ToList();
+                    records = _db.SystemUser.FromSqlRaw(sql_get_account, param).OrderByDescending(x => x.Username).ToList();
                 }
                 else
                 {
-                    records = await _db.SystemUser.OrderByDescending(x => x.CreatedDate).ToListAsync();
+                    records = await _db.SystemUser.OrderByDescending(x => x.Username).ToListAsync();
                 }
 
                 res.Success = true;

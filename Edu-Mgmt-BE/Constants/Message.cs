@@ -54,6 +54,11 @@ namespace Edu_Mgmt_BE.Constants
         public const string ClassIdExist = "Mã lớp đã tồn tại";
         public const string ClassEmpty = "Lớp không thể trống";
 
+        //Xử lý message bài tập
+        public const string HomeWorkNotFound = "Không tìm thấy bài tập này";
+        public const string HomeWorkNameEmpty = "Tên bài tập không thể trống";
+        public const string HomeWorkTypeEmpty = "Loại bài tập không thể trống";
+
         //Xử lý message giáo viên
         public const string TeacherNotFound = "Không tìm thấy giáo viên này";
         public const string TeacherExist = "Giáo viên đã tồn tại";

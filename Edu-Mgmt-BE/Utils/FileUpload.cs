@@ -12,7 +12,7 @@ namespace Edu_Mgmt_BE.Common
         public static Cloudinary cloudinary;
         private readonly string API_KEY = "454226386488799";
         private readonly string API_SECRET = "JhEDW7Tt-8szdykUahR-p3pElFY";
-        private readonly string UPLOAD_PRESET = "bn3jjpdp";
+        //private readonly string UPLOAD_PRESET = "bn3jjpdp";
         private readonly string CLOUDINARY_NAME = "dhi8xksch";
 
         public FileUpload()
@@ -38,7 +38,7 @@ namespace Edu_Mgmt_BE.Common
                 };
                 var uploadResult = cloudinary.Upload(uploadParams);
                 return true;
-            } catch (Exception e)
+            } catch (Exception)
             {
                 return false;
             }

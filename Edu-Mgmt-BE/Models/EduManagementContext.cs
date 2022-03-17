@@ -19,9 +19,16 @@ namespace Edu_Mgmt_BE.Models
         {
         }
 
+        public virtual DbSet<Answer> Answer { get; set; }
+        public virtual DbSet<AnswerFileDetail> AnswerFileDetail { get; set; }
         public virtual DbSet<Class> Class { get; set; }
         public virtual DbSet<ClassDetail> ClassDetail { get; set; }
-        public virtual DbSet<SchoolSubject> SchoolSubject { get; set; }
+        public virtual DbSet<FileUpload> FileUpload { get; set; }
+        public virtual DbSet<HomeWork> HomeWork { get; set; }
+        public virtual DbSet<HomeWorkFileDetail> HomeWorkFileDetail { get; set; }
+        public virtual DbSet<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }
+        public virtual DbSet<Participant> Participant { get; set; }
+        public virtual DbSet<Result> Result { get; set; }
         public virtual DbSet<Student> Student { get; set; }
         public virtual DbSet<SystemRole> SystemRole { get; set; }
         public virtual DbSet<SystemUser> SystemUser { get; set; }
@@ -39,6 +46,39 @@ namespace Edu_Mgmt_BE.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Answer>(entity =>
+            {
+                entity.Property(e => e.AnswerId).HasDefaultValueSql("(newid())");
+
+                entity.Property(e => e.AnswerName)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.FinishDuration).HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<AnswerFileDetail>(entity =>
+            {
+                entity.HasKey(e => e.FileUploadDetailId)
+                    .HasName("PK__AnswerFi__F1AA951B72BC7B12");
+
+                entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
+
+                entity.HasOne(d => d.Answer)
+                    .WithMany(p => p.AnswerFileDetail)
+                    .HasForeignKey(d => d.AnswerId)
+                    .HasConstraintName("FK__AnswerFil__Answe__4E88ABD4");
+
+                entity.HasOne(d => d.FileUpload)
+                    .WithMany(p => p.AnswerFileDetail)
+                    .HasForeignKey(d => d.FileUploadId)
+                    .HasConstraintName("FK__AnswerFil__FileU__4D94879B");
+            });
+
             modelBuilder.Entity<Class>(entity =>
             {
                 entity.Property(e => e.ClassId).HasDefaultValueSql("(newid())");
@@ -47,26 +87,10 @@ namespace Edu_Mgmt_BE.Models
 
                 entity.Property(e => e.ClassYear).HasMaxLength(15);
 
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.CreatedUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
                 entity.HasOne(d => d.Teacher)
                     .WithMany(p => p.Class)
                     .HasForeignKey(d => d.TeacherId)
-                    .HasConstraintName("FK__Class__TeacherId__36B12243");
+                    .HasConstraintName("FK__Class__TeacherId__2B3F6F97");
             });
 
             modelBuilder.Entity<ClassDetail>(entity =>
@@ -76,54 +100,109 @@ namespace Edu_Mgmt_BE.Models
                 entity.HasOne(d => d.Class)
                     .WithMany(p => p.ClassDetail)
                     .HasForeignKey(d => d.ClassId)
-                    .HasConstraintName("FK__ClassDeta__Class__3A81B327");
+                    .HasConstraintName("FK__ClassDeta__Class__2F10007B");
             });
 
-            modelBuilder.Entity<SchoolSubject>(entity =>
+            modelBuilder.Entity<FileUpload>(entity =>
             {
-                entity.HasKey(e => e.SubjectId)
-                    .HasName("PK__SchoolSu__AC1BA3A82259C4CC");
+                entity.Property(e => e.FileUploadId).HasDefaultValueSql("(newid())");
 
-                entity.Property(e => e.SubjectId).HasDefaultValueSql("(newid())");
+                entity.Property(e => e.FileUploadName)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.FileUploadUrl)
+                    .IsRequired()
+                    .HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<HomeWork>(entity =>
+            {
+                entity.Property(e => e.HomeWorkId).HasDefaultValueSql("(newid())");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.CreatedUser)
+                entity.Property(e => e.DueDate).HasColumnType("datetime");
+
+                entity.Property(e => e.HomeWorkName)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.HomeWorkType)
+                    .IsRequired()
+                    .HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<HomeWorkFileDetail>(entity =>
+            {
+                entity.HasKey(e => e.FileUploadDetailId)
+                    .HasName("PK__HomeWork__F1AA951B464D6F44");
+
+                entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
+
+                entity.HasOne(d => d.FileUpload)
+                    .WithMany(p => p.HomeWorkFileDetail)
+                    .HasForeignKey(d => d.FileUploadId)
+                    .HasConstraintName("FK__HomeWorkF__FileU__4222D4EF");
+
+                entity.HasOne(d => d.HomeWork)
+                    .WithMany(p => p.HomeWorkFileDetail)
+                    .HasForeignKey(d => d.HomeWorkId)
+                    .HasConstraintName("FK__HomeWorkF__HomeW__4316F928");
+            });
+
+            modelBuilder.Entity<HomeWorkResultDetail>(entity =>
+            {
+                entity.HasKey(e => e.ResultId)
+                    .HasName("PK__HomeWork__976902087F813468");
+
+                entity.Property(e => e.ResultId).HasDefaultValueSql("(newid())");
+
+                entity.HasOne(d => d.Answer)
+                    .WithMany(p => p.HomeWorkResultDetail)
+                    .HasForeignKey(d => d.AnswerId)
+                    .HasConstraintName("FK__HomeWorkR__Answe__571DF1D5");
+
+                entity.HasOne(d => d.HomeWork)
+                    .WithMany(p => p.HomeWorkResultDetail)
+                    .HasForeignKey(d => d.HomeWorkId)
+                    .HasConstraintName("FK__HomeWorkR__HomeW__5812160E");
+
+                entity.HasOne(d => d.ResultNavigation)
+                    .WithMany(p => p.HomeWorkResultDetail)
+                    .HasForeignKey(d => d.Result)
+                    .HasConstraintName("FK__HomeWorkR__Resul__5629CD9C");
+            });
+
+            modelBuilder.Entity<Participant>(entity =>
+            {
+                entity.Property(e => e.ParticipantId).HasDefaultValueSql("(newid())");
+
+                entity.Property(e => e.ParticipantName)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.ParticipantPhone)
+                    .IsRequired()
+                    .HasMaxLength(20);
+            });
+
+            modelBuilder.Entity<Result>(entity =>
+            {
+                entity.Property(e => e.ResultId).HasDefaultValueSql("(newid())");
+
+                entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.ModifyDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.SubjectName).HasMaxLength(255);
+                entity.Property(e => e.FinalScore).HasMaxLength(4);
             });
 
             modelBuilder.Entity<Student>(entity =>
             {
                 entity.Property(e => e.StudentId).HasDefaultValueSql("(newid())");
-
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.CreatedUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.StudentDob)
                     .HasColumnName("StudentDOB")
@@ -133,15 +212,19 @@ namespace Edu_Mgmt_BE.Models
 
                 entity.Property(e => e.StudentImage).HasMaxLength(255);
 
-                entity.Property(e => e.StudentName).HasMaxLength(255);
+                entity.Property(e => e.StudentName)
+                    .IsRequired()
+                    .HasMaxLength(255);
 
-                entity.Property(e => e.StudentPhone).HasMaxLength(20);
+                entity.Property(e => e.StudentPhone)
+                    .IsRequired()
+                    .HasMaxLength(20);
             });
 
             modelBuilder.Entity<SystemRole>(entity =>
             {
                 entity.HasKey(e => e.RoleId)
-                    .HasName("PK__SystemRo__8AFACE1A2B40E09F");
+                    .HasName("PK__SystemRo__8AFACE1AB1CE87FC");
 
                 entity.Property(e => e.RoleName).HasMaxLength(255);
             });
@@ -149,26 +232,10 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<SystemUser>(entity =>
             {
                 entity.HasIndex(e => e.UserUsername)
-                    .HasName("UQ__SystemUs__04C7FD874DD42B62")
+                    .HasName("UQ__SystemUs__04C7FD872843FE41")
                     .IsUnique();
 
                 entity.Property(e => e.SystemUserId).HasDefaultValueSql("(newid())");
-
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.CreatedUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.UserPassword)
                     .IsRequired()
@@ -187,22 +254,6 @@ namespace Edu_Mgmt_BE.Models
             {
                 entity.Property(e => e.TeacherId).HasDefaultValueSql("(newid())");
 
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.CreatedUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyUser)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
                 entity.Property(e => e.TeacherDob)
                     .HasColumnName("TeacherDOB")
                     .HasMaxLength(15);
@@ -211,9 +262,9 @@ namespace Edu_Mgmt_BE.Models
 
                 entity.Property(e => e.TeacherGender).HasMaxLength(6);
 
-                entity.Property(e => e.TeacherImage).HasMaxLength(255);
-
-                entity.Property(e => e.TeacherName).HasMaxLength(255);
+                entity.Property(e => e.TeacherName)
+                    .IsRequired()
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.TeacherPhone)
                     .IsRequired()

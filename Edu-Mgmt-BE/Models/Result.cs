@@ -9,21 +9,19 @@ using System.Text.Json.Serialization;
 
 namespace Edu_Mgmt_BE.Models
 {
-    public partial class Class
+    public partial class Result
     {
-        public Class()
+        public Result()
         {
-            ClassDetail = new HashSet<ClassDetail>();
+            HomeWorkResultDetail = new HashSet<HomeWorkResultDetail>();
         }
 
-        public Guid ClassId { get; set; }
-        public string ClassName { get; set; }
-        public string ClassYear { get; set; }
-        public Guid TeacherId { get; set; }
+        public Guid ResultId { get; set; }
+        public string FinalScore { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        public virtual Teacher Teacher { get; set; }
         [JsonIgnore]
         [IgnoreDataMember]
-        public virtual ICollection<ClassDetail> ClassDetail { get; set; }
+        public virtual ICollection<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }
     }
 }

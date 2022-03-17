@@ -64,13 +64,13 @@ namespace Edu_Mgmt_BE.Controllers
                     var param = new SqlParameter("@txtSeach", search);
                     records = _db.Teacher
                         .FromSqlRaw(sql_get_teacher, param)
-                        .OrderByDescending(x => x.CreatedDate)
+                        .OrderByDescending(x => x.TeacherName)
                         .ToList();
                 }
                 else
                 {
                     records = await _db.Teacher
-                        .OrderByDescending(x => x.CreatedDate)
+                        .OrderByDescending(x => x.TeacherName)
                         .ToListAsync();
                 }
 
@@ -210,9 +210,7 @@ namespace Edu_Mgmt_BE.Controllers
                 }
 
                 teacherResult.TeacherName = teacher.TeacherName.Trim();
-                teacherResult.TeacherImage = teacher.TeacherImage?.Trim();
                 teacherResult.TeacherEmail = teacher.TeacherEmail?.Trim();
-                teacherResult.ModifyDate = DateTime.Now;
 
                 var role = await _db.SystemRole.FindAsync(2);
 

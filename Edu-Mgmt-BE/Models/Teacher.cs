@@ -21,12 +21,7 @@ namespace Edu_Mgmt_BE.Models
         public string TeacherPhone { get; set; }
         public string TeacherGender { get; set; }
         public string TeacherDob { get; set; }
-        public string TeacherImage { get; set; }
         public string TeacherEmail { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public DateTime? ModifyDate { get; set; }
-        public DateTime? CreatedUser { get; set; }
-        public DateTime? ModifyUser { get; set; }
 
         [JsonIgnore]
         [IgnoreDataMember]
