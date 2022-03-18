@@ -9,8 +9,10 @@ namespace Edu_Mgmt_BE.Models.CustomModel
     {
         public string HomeWorkName { get; set; }
         public string HomeWorkType { get; set; }
+        public string HomeWorkDescribe { get; set; }
         public DateTime? CreatedDate { get; set; }
         public double DueDate { get; set; }
         public FileUpload[] FileList { get; set; }
+        public Guid[] ClassList{ get; set; }
     }
 }

@@ -25,6 +25,7 @@ namespace Edu_Mgmt_BE.Models
         public virtual DbSet<ClassDetail> ClassDetail { get; set; }
         public virtual DbSet<FileUpload> FileUpload { get; set; }
         public virtual DbSet<HomeWork> HomeWork { get; set; }
+        public virtual DbSet<HomeWorkClassDetail> HomeWorkClassDetail { get; set; }
         public virtual DbSet<HomeWorkFileDetail> HomeWorkFileDetail { get; set; }
         public virtual DbSet<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }
         public virtual DbSet<Participant> Participant { get; set; }
@@ -54,29 +55,29 @@ namespace Edu_Mgmt_BE.Models
                     .IsRequired()
                     .HasMaxLength(255);
 
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
                 entity.Property(e => e.FinishDuration).HasMaxLength(255);
+
+                entity.Property(e => e.FinishTime).HasColumnType("datetime");
+
+                entity.Property(e => e.StartTime).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<AnswerFileDetail>(entity =>
             {
                 entity.HasKey(e => e.FileUploadDetailId)
-                    .HasName("PK__AnswerFi__F1AA951B72BC7B12");
+                    .HasName("PK__AnswerFi__F1AA951B1ED714A9");
 
                 entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
 
                 entity.HasOne(d => d.Answer)
                     .WithMany(p => p.AnswerFileDetail)
                     .HasForeignKey(d => d.AnswerId)
-                    .HasConstraintName("FK__AnswerFil__Answe__4E88ABD4");
+                    .HasConstraintName("FK__AnswerFil__Answe__52593CB8");
 
                 entity.HasOne(d => d.FileUpload)
                     .WithMany(p => p.AnswerFileDetail)
                     .HasForeignKey(d => d.FileUploadId)
-                    .HasConstraintName("FK__AnswerFil__FileU__4D94879B");
+                    .HasConstraintName("FK__AnswerFil__FileU__5165187F");
             });
 
             modelBuilder.Entity<Class>(entity =>
@@ -135,45 +136,65 @@ namespace Edu_Mgmt_BE.Models
                     .HasMaxLength(255);
             });
 
+            modelBuilder.Entity<HomeWorkClassDetail>(entity =>
+            {
+                entity.HasKey(e => e.HomeWorkClassDetail1)
+                    .HasName("PK__HomeWork__8AF9F51D23864B60");
+
+                entity.Property(e => e.HomeWorkClassDetail1)
+                    .HasColumnName("HomeWorkClassDetail")
+                    .HasDefaultValueSql("(newid())");
+
+                entity.HasOne(d => d.Class)
+                    .WithMany(p => p.HomeWorkClassDetail)
+                    .HasForeignKey(d => d.ClassId)
+                    .HasConstraintName("FK__HomeWorkC__Class__403A8C7D");
+
+                entity.HasOne(d => d.HomeWork)
+                    .WithMany(p => p.HomeWorkClassDetail)
+                    .HasForeignKey(d => d.HomeWorkId)
+                    .HasConstraintName("FK__HomeWorkC__HomeW__3F466844");
+            });
+
             modelBuilder.Entity<HomeWorkFileDetail>(entity =>
             {
                 entity.HasKey(e => e.FileUploadDetailId)
-                    .HasName("PK__HomeWork__F1AA951B464D6F44");
+                    .HasName("PK__HomeWork__F1AA951B385ED29E");
 
                 entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
 
                 entity.HasOne(d => d.FileUpload)
                     .WithMany(p => p.HomeWorkFileDetail)
                     .HasForeignKey(d => d.FileUploadId)
-                    .HasConstraintName("FK__HomeWorkF__FileU__4222D4EF");
+                    .HasConstraintName("FK__HomeWorkF__FileU__46E78A0C");
 
                 entity.HasOne(d => d.HomeWork)
                     .WithMany(p => p.HomeWorkFileDetail)
                     .HasForeignKey(d => d.HomeWorkId)
-                    .HasConstraintName("FK__HomeWorkF__HomeW__4316F928");
+                    .HasConstraintName("FK__HomeWorkF__HomeW__47DBAE45");
             });
 
             modelBuilder.Entity<HomeWorkResultDetail>(entity =>
             {
                 entity.HasKey(e => e.ResultId)
-                    .HasName("PK__HomeWork__976902087F813468");
+                    .HasName("PK__HomeWork__9769020899BD668C");
 
                 entity.Property(e => e.ResultId).HasDefaultValueSql("(newid())");
 
                 entity.HasOne(d => d.Answer)
                     .WithMany(p => p.HomeWorkResultDetail)
                     .HasForeignKey(d => d.AnswerId)
-                    .HasConstraintName("FK__HomeWorkR__Answe__571DF1D5");
+                    .HasConstraintName("FK__HomeWorkR__Answe__5AEE82B9");
 
                 entity.HasOne(d => d.HomeWork)
                     .WithMany(p => p.HomeWorkResultDetail)
                     .HasForeignKey(d => d.HomeWorkId)
-                    .HasConstraintName("FK__HomeWorkR__HomeW__5812160E");
+                    .HasConstraintName("FK__HomeWorkR__HomeW__5BE2A6F2");
 
                 entity.HasOne(d => d.ResultNavigation)
                     .WithMany(p => p.HomeWorkResultDetail)
                     .HasForeignKey(d => d.Result)
-                    .HasConstraintName("FK__HomeWorkR__Resul__5629CD9C");
+                    .HasConstraintName("FK__HomeWorkR__Resul__59FA5E80");
             });
 
             modelBuilder.Entity<Participant>(entity =>
@@ -193,11 +214,9 @@ namespace Edu_Mgmt_BE.Models
             {
                 entity.Property(e => e.ResultId).HasDefaultValueSql("(newid())");
 
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.FinalScore).HasMaxLength(4);
+                entity.Property(e => e.FinalScore)
+                    .HasMaxLength(4)
+                    .HasDefaultValueSql("(N'0.0')");
             });
 
             modelBuilder.Entity<Student>(entity =>
@@ -224,7 +243,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<SystemRole>(entity =>
             {
                 entity.HasKey(e => e.RoleId)
-                    .HasName("PK__SystemRo__8AFACE1AB1CE87FC");
+                    .HasName("PK__SystemRo__8AFACE1ABECC48F5");
 
                 entity.Property(e => e.RoleName).HasMaxLength(255);
             });
@@ -232,7 +251,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<SystemUser>(entity =>
             {
                 entity.HasIndex(e => e.UserUsername)
-                    .HasName("UQ__SystemUs__04C7FD872843FE41")
+                    .HasName("UQ__SystemUs__04C7FD871FC7547F")
                     .IsUnique();
 
                 entity.Property(e => e.SystemUserId).HasDefaultValueSql("(newid())");

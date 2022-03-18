@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
 // If you have enabled NRTs for your project, then un-comment the following line:
@@ -13,6 +11,7 @@ namespace Edu_Mgmt_BE.Models
     {
         public HomeWork()
         {
+            HomeWorkClassDetail = new HashSet<HomeWorkClassDetail>();
             HomeWorkFileDetail = new HashSet<HomeWorkFileDetail>();
             HomeWorkResultDetail = new HashSet<HomeWorkResultDetail>();
         }
@@ -20,15 +19,13 @@ namespace Edu_Mgmt_BE.Models
         public Guid HomeWorkId { get; set; }
         public string HomeWorkName { get; set; }
         public string HomeWorkType { get; set; }
-        public DateTime? CreatedDate { get; set; }
+        public string HomeWorkDescribe { get; set; }
         public DateTime? DueDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
         public Guid? TeacherId { get; set; }
 
-        [JsonIgnore]
-        [IgnoreDataMember]
+        public virtual ICollection<HomeWorkClassDetail> HomeWorkClassDetail { get; set; }
         public virtual ICollection<HomeWorkFileDetail> HomeWorkFileDetail { get; set; }
-        [JsonIgnore]
-        [IgnoreDataMember]
         public virtual ICollection<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }
     }
 }

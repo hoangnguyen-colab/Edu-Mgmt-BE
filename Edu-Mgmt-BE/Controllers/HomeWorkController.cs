@@ -83,6 +83,10 @@ namespace Edu_Mgmt_BE.Controllers
             }
             try
             {
+                if (homeworkReq.ClassList is null || homeworkReq.ClassList?.Length == 0)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkClassEmpty);
+                }
                 var teacherId = Helper.getTeacherId(HttpContext);
                 if (string.IsNullOrEmpty(homeworkReq.HomeWorkName))
                 {
@@ -99,6 +103,7 @@ namespace Edu_Mgmt_BE.Controllers
                     HomeWorkId = Guid.NewGuid(),
                     HomeWorkName = homeworkReq.HomeWorkName.Trim(),
                     HomeWorkType = homeworkReq.HomeWorkType.Trim(),
+                    HomeWorkDescribe = homeworkReq.HomeWorkDescribe,
                     DueDate = DateTimeUtils.UnixTimeStampToDateTime(homeworkReq.DueDate),
                     CreatedDate = DateTime.Now,
                     TeacherId = string.IsNullOrEmpty(teacherId.ToString()) ? null : teacherId,
@@ -132,7 +137,25 @@ namespace Edu_Mgmt_BE.Controllers
                     //result.Add("fileDetail", fileListDetail);
                 }
 
-                _db.HomeWork.AddRange(homeWork);
+                List<HomeWorkClassDetail> classDetailList = new List<HomeWorkClassDetail>();
+                List<Class> classes = new List<Class>();
+                foreach (var classId in homeworkReq.ClassList)
+                {
+                    Class item = await _db.Class.FindAsync(classId);
+                    if (item != null)
+                    {
+                        classDetailList.Add(new HomeWorkClassDetail()
+                        {
+                            ClassId = item.ClassId,
+                            HomeWorkId = homeWork.HomeWorkId,
+                        });
+                        classes.Add(item);
+                    }
+                }
+                result.Add("classes", classes);
+                _db.HomeWorkClassDetail.AddRange(classDetailList);
+
+                _db.HomeWork.Add(homeWork);
                 await _db.SaveChangesAsync();
 
                 res.Success = true;

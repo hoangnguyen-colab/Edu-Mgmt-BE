@@ -7,13 +7,13 @@ using System.Collections.Generic;
 
 namespace Edu_Mgmt_BE.Models
 {
-    public partial class HomeWorkFileDetail
+    public partial class HomeWorkClassDetail
     {
-        public Guid FileUploadDetailId { get; set; }
-        public Guid FileUploadId { get; set; }
+        public Guid HomeWorkClassDetail1 { get; set; }
         public Guid HomeWorkId { get; set; }
+        public Guid ClassId { get; set; }
 
-        public virtual FileUpload FileUpload { get; set; }
+        public virtual Class Class { get; set; }
         public virtual HomeWork HomeWork { get; set; }
     }
 }

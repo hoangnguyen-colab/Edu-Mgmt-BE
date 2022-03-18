@@ -58,6 +58,7 @@ namespace Edu_Mgmt_BE.Constants
         public const string HomeWorkNotFound = "Không tìm thấy bài tập này";
         public const string HomeWorkNameEmpty = "Tên bài tập không thể trống";
         public const string HomeWorkTypeEmpty = "Loại bài tập không thể trống";
+        public const string HomeWorkClassEmpty = "Lớp giao bài tập không thể trống";
 
         //Xử lý message giáo viên
         public const string TeacherNotFound = "Không tìm thấy giáo viên này";
@@ -74,7 +75,7 @@ namespace Edu_Mgmt_BE.Constants
         public const string SchoolYearDateEmpty = "Năm học không thể trống";
         public const string SchoolYearExist = "Năm học đã tồn tại";
         public const string SchoolYearNotFound = "Không tìm năm học này";
-        public const string SchoolYearBadRequest = "Năm học không hợp lệ này";
+        public const string SchoolYearBadRequest = "Năm học không hợp lệ";
 
         public const string ProductLogChange = "Thay đổi thông tin sản phẩm";
         public const string ProductLogDelete = "Xóa sản phẩm";

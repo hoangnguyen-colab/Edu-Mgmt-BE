@@ -47,47 +47,61 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             try
             {
-                var pagingData = new PagingData();
                 List<Class> records = new List<Class>();
-
-                string role = Helper.getRole(HttpContext);
-                if (role.Equals("teacher"))
+                var teacherId = Helper.getTeacherId(HttpContext);
+                if (search != null && search.Trim() != "")
                 {
-                    var teacherId = Helper.getTeacherId(HttpContext);
-                    if (search != null && search.Trim() != "")
-                    {
-                        var paramId = new SqlParameter("@teacherId", teacherId);
-                        var paramSearch = new SqlParameter("@txtSeach", search);
-                        records = _db.Class
-                            .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
-                            .OrderByDescending(x => x.ClassName)
-                            .ToList();
-                    }
-                    else
-                    {
-                        records = _db.Class.Where(item => item.TeacherId.Equals(teacherId)).ToList();
-                    }
+                    var paramId = new SqlParameter("@teacherId", teacherId);
+                    var paramSearch = new SqlParameter("@txtSeach", search);
+                    records = _db.Class
+                        .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
+                        .OrderByDescending(x => x.ClassName)
+                        .ToList();
                 }
                 else
                 {
-                    if (search != null && search.Trim() != "")
-                    {
-                        var param = new SqlParameter("@txtSeach", search);
-                        records = _db.Class.FromSqlRaw(SearchClassQuery, param).OrderByDescending(x => x.ClassName).ToList();
-                    }
-                    else
-                    {
-                        records = await _db.Class.OrderByDescending(x => x.ClassName).ToListAsync();
-                    }
+                    records = _db.Class.Where(item => item.TeacherId.Equals(teacherId)).ToList();
                 }
 
-                res.Success = true;
-                res.Data = new PagingData()
+                //string role = Helper.getRole(HttpContext);
+                //if (role.Equals("teacher"))
+                //{
+                //    var teacherId = Helper.getTeacherId(HttpContext);
+                //    if (search != null && search.Trim() != "")
+                //    {
+                //        var paramId = new SqlParameter("@teacherId", teacherId);
+                //        var paramSearch = new SqlParameter("@txtSeach", search);
+                //        records = _db.Class
+                //            .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
+                //            .OrderByDescending(x => x.ClassName)
+                //            .ToList();
+                //    }
+                //    else
+                //    {
+                //        records = _db.Class.Where(item => item.TeacherId.Equals(teacherId)).ToList();
+                //    }
+                //}
+                //else
+                //{
+                //    if (search != null && search.Trim() != "")
+                //    {
+                //        var param = new SqlParameter("@txtSeach", search);
+                //        records = _db.Class.FromSqlRaw(SearchClassQuery, param).OrderByDescending(x => x.ClassName).ToList();
+                //    }
+                //    else
+                //    {
+                //        records = await _db.Class.OrderByDescending(x => x.ClassName).ToListAsync();
+                //    }
+                //}
+
+                PagingData pagingData = new PagingData()
                 {
                     TotalRecord = records.Count(),
                     TotalPage = Convert.ToInt32(Math.Ceiling((decimal)records.Count() / (decimal)record.Value)),
-                    Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList(),
+                    Data = records?.Skip((page.Value - 1) * record.Value)?.Take(record.Value).ToList(),
                 };
+                res.Success = true;
+                res.Data = pagingData;
                 res.StatusCode = HttpStatusCode.OK;
             }
             catch (Exception e)
@@ -140,6 +154,7 @@ namespace Edu_Mgmt_BE.Controllers
                 classObj.ClassName = classObj.ClassName.Trim();
                 classObj.ClassYear = schoolYear + "-" + (schoolYear + 1);
                 classObj.TeacherId = teacherId.Value;
+                classObj.ClassStatus = ClassStatus.Active;
 
                 _db.Class.Add(classObj);
                 await _db.SaveChangesAsync();
