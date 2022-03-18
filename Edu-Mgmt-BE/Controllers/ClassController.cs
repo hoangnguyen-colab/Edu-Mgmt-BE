@@ -23,7 +23,7 @@ namespace Edu_Mgmt_BE.Controllers
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
-        private const string TeacherClassQuery = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId";
+        private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail WHERE HomeWorkClassDetail.ClassId = Class.ClassId) as HomeWorkCount FROM Class, HomeWorkClassDetail WHERE Class.TeacherId = @teacherId";
         private const string TeacherClassQuerySearch = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId AND CHARINDEX(@txtSeach, ClassName) > 0";
         private const string SearchClassQuery = "SELECT * FROM Class WHERE CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
 
@@ -49,9 +49,9 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 List<Class> records = new List<Class>();
                 var teacherId = Helper.getTeacherId(HttpContext);
+                var paramId = new SqlParameter("@teacherId", teacherId);
                 if (search != null && search.Trim() != "")
                 {
-                    var paramId = new SqlParameter("@teacherId", teacherId);
                     var paramSearch = new SqlParameter("@txtSeach", search);
                     records = _db.Class
                         .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)

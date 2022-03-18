@@ -20,6 +20,7 @@ namespace Edu_Mgmt_BE.Models
         public string HomeWorkName { get; set; }
         public string HomeWorkType { get; set; }
         public string HomeWorkDescribe { get; set; }
+        public int HomeWorkStatus { get; set; }
         public DateTime? DueDate { get; set; }
         public DateTime? CreatedDate { get; set; }
         public Guid? TeacherId { get; set; }

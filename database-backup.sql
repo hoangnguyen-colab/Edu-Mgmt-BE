@@ -83,6 +83,7 @@ CREATE TABLE HomeWork
 	HomeWorkType NVARCHAR(255) NOT NULL,
 	HomeWorkDescribe NVARCHAR(MAX),
 	DueDate DATETIME,
+	HomeWorkStatus INT,
 	CreatedDate DATETIME DEFAULT GETDATE(),
 
 	TeacherId UNIQUEIDENTIFIER,
@@ -209,4 +210,16 @@ AND FileUpload.FileUploadId = HomeWorkFileDetail.FileUploadId
 
 select * from Teacher
 
-SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = N'88CA6417-6B71-48B2-9FD9-47C57F384947' AND CHARINDEX(@txtSeach, ClassName) > 0
+SELECT DISTINCT Class.*, (
+	SELECT DISTINCT count(*)
+	FROM HomeWorkClassDetail
+	WHERE HomeWorkClassDetail.ClassId = Class.ClassId
+) as HomeWorkCount 
+FROM Class, HomeWorkClassDetail 
+WHERE Class.TeacherId = N'88CA6417-6B71-48B2-9FD9-47C57F384947'
+
+
+
+SELECT DISTINCT count(*)
+FROM HomeWorkClassDetail
+WHERE HomeWorkClassDetail.HomeWorkId = N'0DDC5539-50E6-4FC8-A76D-328528FEA13E'
