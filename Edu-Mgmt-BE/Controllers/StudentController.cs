@@ -240,11 +240,9 @@ namespace Edu_Mgmt_BE.Controllers
                 }
 
                 studentResult.StudentName = student.StudentName.Trim();
-                studentResult.StudentImage = student.StudentImage?.Trim();
                 studentResult.StudentPhone = student.StudentPhone?.Trim();
                 studentResult.StudentDob = student.StudentDob?.Trim();
                 studentResult.StudentGender = student.StudentGender?.Trim();
-                studentResult.StudentImage = student.StudentImage?.Trim();
 
                 var role = await _db.SystemRole.FindAsync(3);
 

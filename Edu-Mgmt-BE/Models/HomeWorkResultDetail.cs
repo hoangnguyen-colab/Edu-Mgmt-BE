@@ -9,13 +9,13 @@ namespace Edu_Mgmt_BE.Models
 {
     public partial class HomeWorkResultDetail
     {
+        public Guid HomeWorkResultDetailId { get; set; }
         public Guid ResultId { get; set; }
-        public Guid Result { get; set; }
-        public Guid AnswerId { get; set; }
-        public Guid HomeWorkId { get; set; }
+        public Guid? AnswerId { get; set; }
+        public Guid? HomeWorkId { get; set; }
 
         public virtual Answer Answer { get; set; }
         public virtual HomeWork HomeWork { get; set; }
-        public virtual Result ResultNavigation { get; set; }
+        public virtual Result Result { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace Edu_Mgmt_BE.Models
         public Guid ClassId { get; set; }
         public string ClassName { get; set; }
         public string ClassYear { get; set; }
-        public int ClassStatus { get; set; }
+        public int? ClassStatus { get; set; }
         public Guid TeacherId { get; set; }
 
         public virtual Teacher Teacher { get; set; }

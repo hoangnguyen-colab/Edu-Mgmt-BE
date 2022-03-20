@@ -165,7 +165,6 @@ namespace Edu_Mgmt_BE.Utils
                     StudentId = Guid.NewGuid(),
                     StudentName = studentReq.StudentName.Trim(),
                     StudentGender = studentReq.StudentGender?.Trim() ?? "",
-                    StudentImage = studentReq.StudentImage?.Trim() ?? "",
                     StudentDob = studentReq.StudentDob?.Trim() ?? "",
                     StudentPhone = studentReq.StudentPhone.Trim(),
                 };

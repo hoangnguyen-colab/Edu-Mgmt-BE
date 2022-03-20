@@ -13,8 +13,6 @@ CREATE TABLE Student
 	StudentName NVARCHAR(255) NOT NULL,
 	StudentPhone NVARCHAR(20) NOT NULL,
 	StudentGender NVARCHAR(6),
-	StudentDOB NVARCHAR(15),
-	StudentImage NVARCHAR(255),
 )
 GO
 
@@ -84,6 +82,8 @@ CREATE TABLE HomeWork
 	HomeWorkDescribe NVARCHAR(MAX),
 	DueDate DATETIME,
 	HomeWorkStatus INT,
+	RequiredLogin BIT DEFAULT 0,
+	OnlyAssignStudent BIT DEFAULT 0,
 	CreatedDate DATETIME DEFAULT GETDATE(),
 
 	TeacherId UNIQUEIDENTIFIER,
@@ -114,14 +114,6 @@ CREATE TABLE HomeWorkFileDetail
 )
 GO
 
-CREATE TABLE Participant
-(
-	ParticipantId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-	ParticipantName NVARCHAR(255) NOT NULL,
-	ParticipantPhone NVARCHAR(20) NOT NULL,
-)
-GO
-
 CREATE TABLE Answer
 (
 	AnswerId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -129,6 +121,9 @@ CREATE TABLE Answer
 	StartTime DATETIME NOT NULL,
 	FinishTime DATETIME,
 	FinishDuration NVARCHAR(255),
+	
+	HomeWorkId UNIQUEIDENTIFIER REFERENCES HomeWork(HomeWorkId) ON DELETE CASCADE NOT NULL,
+	StudentId UNIQUEIDENTIFIER REFERENCES Student(StudentId) ON DELETE CASCADE NOT NULL,
 )
 GO
 
@@ -144,6 +139,7 @@ CREATE TABLE Result
 (
 	ResultId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
 	FinalScore NVARCHAR(4) DEFAULT N'0.0',
+	CreatedDate DATETIME DEFAULT GETDATE(),
 
 	TeacherId UNIQUEIDENTIFIER,
 )
@@ -151,10 +147,10 @@ GO
 
 CREATE TABLE HomeWorkResultDetail
 (
-	ResultId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-	Result UNIQUEIDENTIFIER REFERENCES Result(ResultId) ON DELETE CASCADE NOT NULL,
-	AnswerId UNIQUEIDENTIFIER REFERENCES Answer(AnswerId) ON DELETE CASCADE NOT NULL,
-	HomeWorkId UNIQUEIDENTIFIER REFERENCES HomeWork(HomeWorkId) ON DELETE CASCADE NOT NULL,
+	HomeWorkResultDetailId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+	ResultId UNIQUEIDENTIFIER REFERENCES Result(ResultId) ON DELETE CASCADE NOT NULL,
+	AnswerId UNIQUEIDENTIFIER REFERENCES Answer(AnswerId),
+	HomeWorkId UNIQUEIDENTIFIER REFERENCES HomeWork(HomeWorkId),
 )
 GO
 
@@ -203,23 +199,3 @@ GO
 
 select * from Class
 
-SELECT DISTINCT FileUpload.* FROM HomeWork, HomeWorkFileDetail, FileUpload
-WHERE HomeWork.HomeWorkId = N'fa97cd45-242e-4c4f-8bab-a1aa0d7a7fe0'
-AND HomeWork.HomeWorkId = HomeWorkFileDetail.HomeWorkId
-AND FileUpload.FileUploadId = HomeWorkFileDetail.FileUploadId
-
-select * from Teacher
-
-SELECT DISTINCT Class.*, (
-	SELECT DISTINCT count(*)
-	FROM HomeWorkClassDetail
-	WHERE HomeWorkClassDetail.ClassId = Class.ClassId
-) as HomeWorkCount 
-FROM Class, HomeWorkClassDetail 
-WHERE Class.TeacherId = N'88CA6417-6B71-48B2-9FD9-47C57F384947'
-
-
-
-SELECT DISTINCT count(*)
-FROM HomeWorkClassDetail
-WHERE HomeWorkClassDetail.HomeWorkId = N'0DDC5539-50E6-4FC8-A76D-328528FEA13E'

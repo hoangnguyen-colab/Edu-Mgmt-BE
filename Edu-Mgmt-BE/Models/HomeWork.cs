@@ -11,6 +11,7 @@ namespace Edu_Mgmt_BE.Models
     {
         public HomeWork()
         {
+            Answer = new HashSet<Answer>();
             HomeWorkClassDetail = new HashSet<HomeWorkClassDetail>();
             HomeWorkFileDetail = new HashSet<HomeWorkFileDetail>();
             HomeWorkResultDetail = new HashSet<HomeWorkResultDetail>();
@@ -20,11 +21,14 @@ namespace Edu_Mgmt_BE.Models
         public string HomeWorkName { get; set; }
         public string HomeWorkType { get; set; }
         public string HomeWorkDescribe { get; set; }
-        public int HomeWorkStatus { get; set; }
         public DateTime? DueDate { get; set; }
+        public int? HomeWorkStatus { get; set; }
+        public bool? RequiredLogin { get; set; }
+        public bool? OnlyAssignStudent { get; set; }
         public DateTime? CreatedDate { get; set; }
         public Guid? TeacherId { get; set; }
 
+        public virtual ICollection<Answer> Answer { get; set; }
         public virtual ICollection<HomeWorkClassDetail> HomeWorkClassDetail { get; set; }
         public virtual ICollection<HomeWorkFileDetail> HomeWorkFileDetail { get; set; }
         public virtual ICollection<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }

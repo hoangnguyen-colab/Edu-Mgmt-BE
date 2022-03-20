@@ -16,6 +16,7 @@ namespace Edu_Mgmt_BE.Models
 
         public Guid ResultId { get; set; }
         public string FinalScore { get; set; }
+        public DateTime? CreatedDate { get; set; }
         public Guid? TeacherId { get; set; }
 
         public virtual ICollection<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }

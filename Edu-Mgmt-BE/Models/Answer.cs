@@ -20,7 +20,11 @@ namespace Edu_Mgmt_BE.Models
         public DateTime StartTime { get; set; }
         public DateTime? FinishTime { get; set; }
         public string FinishDuration { get; set; }
+        public Guid HomeWorkId { get; set; }
+        public Guid StudentId { get; set; }
 
+        public virtual HomeWork HomeWork { get; set; }
+        public virtual Student Student { get; set; }
         public virtual ICollection<AnswerFileDetail> AnswerFileDetail { get; set; }
         public virtual ICollection<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }
     }
