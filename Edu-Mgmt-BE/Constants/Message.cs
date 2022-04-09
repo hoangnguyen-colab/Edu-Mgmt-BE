@@ -33,6 +33,7 @@ namespace Edu_Mgmt_BE.Constants
         public const string UserLoginNameEmpty = "Tên đăng nhập không thể trống";
         public const string UserPasswordEmpty = "Mật khẩu không thể trống";
         public const string UserLoginNameExist = "Tên đăng nhập đã tồn tại";
+        public const string UserAccountExist = "Tài khoản đã tồn tại";
 
         //Xử lý message file
         public const string FileUploadFail = "Tải lên file thất bại";
@@ -76,12 +77,5 @@ namespace Edu_Mgmt_BE.Constants
         public const string SchoolYearExist = "Năm học đã tồn tại";
         public const string SchoolYearNotFound = "Không tìm năm học này";
         public const string SchoolYearBadRequest = "Năm học không hợp lệ";
-
-        public const string ProductLogChange = "Thay đổi thông tin sản phẩm";
-        public const string ProductLogDelete = "Xóa sản phẩm";
-        public const string ProductLogAdd = "Thêm mới sản phẩm";
-        public const string ProductNotExist = "Sản phẩm này không tồn tại";
-        public const string ProductNotFound = "Không tìm thấy sản phẩm này";
-        public const string ProductPriceNotFound = "Không tìm thấy giá sản phẩm này";
     }
 }

@@ -3,6 +3,7 @@ using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
 using Edu_Mgmt_BE.Models.CustomModel.Student;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,10 @@ namespace Edu_Mgmt_BE.Utils
     public class UserCreator
     {
         private static readonly EduManagementContext _db = new EduManagementContext();
+        private const string StudentCheckAccount = @"SELECT UserDetail.* FROM Student, UserDetail
+        WHERE Student.StudentId = UserDetail.UserId
+        AND Student.StudentPhone = @studentPhone";
+
         public static async Task<ServiceResponse> AdminCreate(SystemUser systemUser)
         {
             try
@@ -156,50 +161,40 @@ namespace Edu_Mgmt_BE.Utils
                 var student_result = _db.Student
                     .Where(item => item.StudentPhone.Equals(studentReq.StudentPhone.Trim()))
                     .FirstOrDefault();
-                if (student_result != null)
+                if (student_result == null)
                 {
-                    return ErrorHandler.BadRequestResponse(Message.TeacherPhoneExist);
-                }
-                Student student = new Student()
-                {
-                    StudentId = Guid.NewGuid(),
-                    StudentName = studentReq.StudentName.Trim(),
-                    StudentGender = studentReq.StudentGender?.Trim() ?? "",
-                    StudentDob = studentReq.StudentDob?.Trim() ?? "",
-                    StudentPhone = studentReq.StudentPhone.Trim(),
-                };
-                _db.Student.Add(student);
-
-                ClassDetail classDetail = null;
-                if (!string.IsNullOrEmpty(studentReq.ClassId.ToString()))
-                {
-                    var classResult = await _db.Class.FindAsync(studentReq.ClassId);
-                    if (classResult == null)
+                    student_result = new Student()
                     {
-                        return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
-                    }
-                    classDetail = new ClassDetail()
-                    {
-                        ClassDetailId = Guid.NewGuid(),
-                        StudentId = student.StudentId,
-                        ClassId = studentReq.ClassId.Value,
+                        StudentId = Guid.NewGuid(),
+                        StudentName = studentReq.StudentName.Trim(),
+                        StudentPhone = studentReq.StudentPhone.Trim(),
                     };
-                    _db.ClassDetail.Add(classDetail);
+                    _db.Student.Add(student_result);
+                }
+
+                var paramPhone = new SqlParameter("@studentPhone", studentReq.StudentPhone.Trim());
+                var account_detail = await _db.UserDetail
+                    .FromSqlRaw(StudentCheckAccount, paramPhone)
+                    .FirstOrDefaultAsync();
+
+                if (account_detail != null)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.UserAccountExist);
                 }
 
                 SystemUser sysUser = new SystemUser
                 {
                     SystemUserId = Guid.NewGuid(),
-                    Username = student.StudentName,
-                    UserUsername = student.StudentPhone,
-                    UserPassword = (string.IsNullOrEmpty(password)) ? Helper.EncodeMD5(student.StudentPhone) : Helper.EncodeMD5(password),
+                    Username = student_result.StudentName,
+                    UserUsername = student_result.StudentPhone,
+                    UserPassword = (string.IsNullOrEmpty(password)) ? Helper.EncodeMD5(student_result.StudentPhone) : Helper.EncodeMD5(password),
                 };
                 _db.SystemUser.Add(sysUser);
 
                 UserDetail sysUserDetail = new UserDetail
                 {
                     UserDetailId = Guid.NewGuid(),
-                    UserId = student.StudentId,
+                    UserId = student_result.StudentId,
                     SystemRoleId = 3,
                     SystemUserId = sysUser.SystemUserId,
                 };
@@ -207,16 +202,10 @@ namespace Edu_Mgmt_BE.Utils
 
                 var role = await _db.SystemRole.FindAsync(3);
 
-                if (classDetail != null)
-                {
-                    classDetail.StudentId = student.StudentId;
-                }
-
                 Dictionary<string, object> result = new Dictionary<string, object>();
-                result.Add("student", student);
+                result.Add("student", student_result);
                 result.Add("studentAccount", sysUser);
                 result.Add("role", role);
-                result.Add("classDetail", classDetail);
                 await _db.SaveChangesAsync();
 
                 return new ServiceResponse()

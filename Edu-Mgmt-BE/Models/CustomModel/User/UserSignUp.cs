@@ -11,6 +11,6 @@ namespace Edu_Mgmt_BE.Models.CustomModel.User
         public string UserPhone { get; set; }
         public string UserPassword { get; set; }
         public string UserEmail { get; set; }
-        public int RoleId { get; set; }
+        public int signUpUserType { get; set; }
     }
 }

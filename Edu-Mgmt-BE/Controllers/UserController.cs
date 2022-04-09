@@ -166,13 +166,14 @@ namespace Edu_Mgmt_BE.Controllers
         /// </summary>
         /// <param SystemUser="SystemUser"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpPost("sign-up")]
         public async Task<ServiceResponse> CreateUser(UserSignUp userSignUp)
         {
             ServiceResponse res = new ServiceResponse();
             try
             {
-                if (userSignUp.RoleId == 2) //teacher
+                if (userSignUp.signUpUserType == 2) //teacher
                 {
                     Teacher teacher = new Teacher()
                     {
@@ -182,7 +183,7 @@ namespace Edu_Mgmt_BE.Controllers
                     };
                     res = await UserCreator.TeacherCreate(teacher, userSignUp.UserPassword);
                 }
-                if (userSignUp.RoleId == 3) //student
+                if (userSignUp.signUpUserType == 3) //student
                 {
                     AddStudentRequest student = new AddStudentRequest()
                     {
