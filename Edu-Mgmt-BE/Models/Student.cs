@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
 // If you have enabled NRTs for your project, then un-comment the following line:
@@ -20,6 +22,8 @@ namespace Edu_Mgmt_BE.Models
         public string StudentDob { get; set; }
         public string StudentGender { get; set; }
 
+        [IgnoreDataMember]
+        [JsonIgnore]
         public virtual ICollection<Answer> Answer { get; set; }
     }
 }

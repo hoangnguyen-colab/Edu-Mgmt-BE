@@ -2,6 +2,7 @@
 using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
+using Edu_Mgmt_BE.Models.CustomModel.Class;
 using Edu_Mgmt_BE.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -127,7 +128,7 @@ namespace Edu_Mgmt_BE.Controllers
             try
             {
                 var teacherId = Helper.getTeacherId(HttpContext);
-                if(string.IsNullOrEmpty(teacherId?.ToString()))
+                if (string.IsNullOrEmpty(teacherId?.ToString()))
                 {
                     return ErrorHandler.BadRequestResponse(Message.TeacherIdBadRequest);
                 }
@@ -271,6 +272,86 @@ namespace Edu_Mgmt_BE.Controllers
 
                 res.Success = true;
                 res.Data = classResult;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+
+        /// <summary>
+        /// Thêm học sinh vào lớp
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpPost("add-student")]
+        public async Task<ServiceResponse> AddStudentToClass(AddStudentToClassRequest request)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                if (string.IsNullOrEmpty(request.classId.ToString()))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.ClassEmpty);
+                }
+                Dictionary<string, object> result = new Dictionary<string, object>();
+
+                var class_result = _db.Class.Find(request.classId);
+                if (class_result == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
+                }
+                result.Add("class", class_result);
+
+                List<Student> studentDataList = new List<Student>();
+                List<Student> newStudentDataList = new List<Student>();
+                List<ClassDetail> classDetail = new List<ClassDetail>();
+
+                foreach (var student in request.studentList)
+                {
+                    var student_result = _db.Student.Where(item =>
+                    item.StudentName.ToLower().Equals(student.StudentName.Trim().ToLower()) &&
+                    item.StudentDob.Equals(student.StudentDob.Trim()) &&
+                    item.StudentPhone.Equals(student.StudentPhone.Trim())).FirstOrDefault();
+
+                    if (student_result == null)
+                    {
+                        student_result = new Student()
+                        {
+                            StudentId = Guid.NewGuid(),
+                            StudentName = student.StudentName.Trim(),
+                            StudentDob = student.StudentDob.Trim(),
+                            StudentGender = student.StudentGender.Trim(),
+                            StudentPhone = student.StudentPhone.Trim(),
+                        };
+                        newStudentDataList.Add(student_result);
+                    }
+
+                    studentDataList.Add(student_result);
+                    classDetail.Add(new ClassDetail()
+                    {
+                        ClassDetailId = Guid.NewGuid(),
+                        ClassId = request.classId,
+                        StudentId = student_result.StudentId,
+                    });
+                }
+                result.Add("studentDataList", studentDataList);
+                //result.Add("classDetail", classDetail);
+
+                _db.Student.AddRange(newStudentDataList);
+                _db.ClassDetail.AddRange(classDetail);
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
                 res.StatusCode = HttpStatusCode.OK;
             }
             catch (Exception e)
