@@ -27,6 +27,8 @@ namespace Edu_Mgmt_BE.Controllers
         private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail WHERE HomeWorkClassDetail.ClassId = Class.ClassId) as HomeWorkCount FROM Class, HomeWorkClassDetail WHERE Class.TeacherId = @teacherId";
         private const string TeacherClassQuerySearch = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId AND CHARINDEX(@txtSeach, ClassName) > 0";
         private const string SearchClassQuery = "SELECT * FROM Class WHERE CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
+        private const string StudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId";
+        private const string FindStudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId AND Student.StudentId = @studentId";
 
         public ClassController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
         {
@@ -186,7 +188,15 @@ namespace Edu_Mgmt_BE.Controllers
                 return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
             }
             Dictionary<string, object> result = new Dictionary<string, object>();
+
+            var paramId = new SqlParameter("@classId", id);
+            List<Student> studentList = _db.Student
+                        .FromSqlRaw(StudentInClassQuery, paramId)
+                        .OrderByDescending(x => x.StudentName)
+                        .ToList();
+
             result.Add("class", classResult);
+            result.Add("students", studentList);
 
             res.Data = result;
             res.Success = true;
@@ -281,7 +291,6 @@ namespace Edu_Mgmt_BE.Controllers
             return res;
         }
 
-
         /// <summary>
         /// Thêm học sinh vào lớp
         /// </summary>
@@ -358,6 +367,94 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 res = ErrorHandler.ErrorCatchResponse(e);
             }
+            return res;
+        }
+
+        /// <summary>
+        /// Check học sinh trong lớp theo id
+        /// </summary>
+        /// <param id="id"></param>
+        /// <returns></returns>
+        [HttpPost("find-student-id")]
+        public async Task<ServiceResponse> CheckClassStudent(CheckStudentById req)
+        {
+            ServiceResponse res = new ServiceResponse();
+
+            if (string.IsNullOrEmpty(req.classId.ToString()))
+            {
+                return ErrorHandler.BadRequestResponse(Message.ClassEmpty);
+            }
+            if (string.IsNullOrEmpty(req.studentId.ToString()))
+            {
+                return ErrorHandler.BadRequestResponse(Message.StudentEmpty);
+            }
+
+            var classResult = await _db.Class.FindAsync(req.classId);
+            if (classResult == null)
+            {
+                return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
+            }
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            var paramClassId = new SqlParameter("@classId", req.classId);
+            var paramStudentId = new SqlParameter("@studentId", req.studentId);
+
+            Student student = await _db.Student
+                        .FromSqlRaw(FindStudentInClassQuery, paramClassId, paramStudentId)
+                        .OrderByDescending(x => x.StudentName)
+                        .FirstOrDefaultAsync();
+
+            result.Add("class", classResult);
+            result.Add("student", student);
+
+            res.Data = result;
+            res.Success = true;
+            res.StatusCode = HttpStatusCode.OK;
+            return res;
+        }
+
+        /// <summary>
+        /// Check học sinh trong lớp
+        /// </summary>
+        /// <param id="id"></param>
+        /// <returns></returns>
+        [HttpPost("find-student")]
+        public async Task<ServiceResponse> CheckClassStudentByField(CheckStudentByField req)
+        {
+            ServiceResponse res = new ServiceResponse();
+
+            if (string.IsNullOrEmpty(req.classId.ToString()))
+            {
+                return ErrorHandler.BadRequestResponse(Message.ClassEmpty);
+            }
+
+            var classResult = await _db.Class.FindAsync(req.classId);
+            if (classResult == null)
+            {
+                return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
+            }
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            var paramId = new SqlParameter("@classId", req.classId);
+            List<Student> studentList = _db.Student
+                        .FromSqlRaw(StudentInClassQuery, paramId)
+                        .OrderByDescending(x => x.StudentName)
+                        .ToList();
+
+            Student student = studentList.Where(item =>
+            StringUtils.VietnameseNormalize(item.StudentName).Equals(StringUtils.VietnameseNormalize(req.studentName)) &&
+            item.StudentPhone.Trim().Equals(req.studentPhone.Trim()) &&
+            item.StudentDob.Trim().Equals(req.studentDob.Trim()))
+                .FirstOrDefault();
+
+            result.Add("class", classResult);
+            result.Add("student", student);
+
+            res.Data = result;
+            res.Success = true;
+            res.StatusCode = HttpStatusCode.OK;
             return res;
         }
 

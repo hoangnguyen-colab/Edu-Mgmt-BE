@@ -45,6 +45,7 @@ namespace Edu_Mgmt_BE.Constants
         public const string StudentNotFound = "Không tìm thấy học sinh này";
         public const string StudentExist = "Học sinh đã tồn tại";
         public const string StudentNameEmpty = "Tên học sinh không thể trống";
+        public const string StudentEmpty = "Học sinh không thể trống";
         public const string StudentPhoneEmpty = "Số điện thoại của học sinh không thể trống";
 
         //Xử lý message lớp
