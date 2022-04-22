@@ -18,12 +18,13 @@ namespace Edu_Mgmt_BE.Models
         }
 
         public Guid AnswerId { get; set; }
-        public string AnswerName { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime? FinishTime { get; set; }
-        public string FinishDuration { get; set; }
-        public Guid HomeWorkId { get; set; }
-        public Guid StudentId { get; set; }
+        public DateTime SubmitTime { get; set; }
+        public string AnswerContent { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? ModifyDate { get; set; }
+        public Guid? HomeWorkId { get; set; }
+        public Guid? StudentId { get; set; }
+        public Guid? ClassId { get; set; }
 
         public virtual HomeWork HomeWork { get; set; }
         public virtual Student Student { get; set; }

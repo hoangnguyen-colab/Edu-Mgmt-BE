@@ -10,7 +10,7 @@ namespace Edu_Mgmt_BE.Models
     public partial class HomeWorkClassDetail
     {
         public Guid HomeWorkClassDetail1 { get; set; }
-        public Guid HomeWorkId { get; set; }
+        public Guid? HomeWorkId { get; set; }
         public Guid ClassId { get; set; }
 
         public virtual Class Class { get; set; }

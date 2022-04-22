@@ -22,7 +22,7 @@ namespace Edu_Mgmt_BE.Models
         public Guid HomeWorkId { get; set; }
         public string HomeWorkName { get; set; }
         public string HomeWorkType { get; set; }
-        public string HomeWorkDescribe { get; set; }
+        public string HomeWorkContent { get; set; }
         public DateTime? DueDate { get; set; }
         public int? HomeWorkStatus { get; set; }
         public bool? RequiredLogin { get; set; }

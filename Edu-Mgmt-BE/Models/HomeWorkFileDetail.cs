@@ -10,7 +10,7 @@ namespace Edu_Mgmt_BE.Models
     public partial class HomeWorkFileDetail
     {
         public Guid FileUploadDetailId { get; set; }
-        public Guid FileUploadId { get; set; }
+        public Guid? FileUploadId { get; set; }
         public Guid HomeWorkId { get; set; }
 
         public virtual FileUpload FileUpload { get; set; }

@@ -10,7 +10,7 @@ namespace Edu_Mgmt_BE.Models
     public partial class AnswerFileDetail
     {
         public Guid FileUploadDetailId { get; set; }
-        public Guid FileUploadId { get; set; }
+        public Guid? FileUploadId { get; set; }
         public Guid AnswerId { get; set; }
 
         public virtual Answer Answer { get; set; }

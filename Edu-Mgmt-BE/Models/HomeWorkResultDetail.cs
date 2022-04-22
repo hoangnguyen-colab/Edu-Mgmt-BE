@@ -13,6 +13,7 @@ namespace Edu_Mgmt_BE.Models
         public Guid ResultId { get; set; }
         public Guid? AnswerId { get; set; }
         public Guid? HomeWorkId { get; set; }
+        public Guid? TeacherId { get; set; }
 
         public virtual Answer Answer { get; set; }
         public virtual HomeWork HomeWork { get; set; }
