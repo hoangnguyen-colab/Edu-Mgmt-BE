@@ -124,6 +124,9 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 var userId = Helper.getUserId(HttpContext);
                 var account = await _db.SystemUser.FindAsync(userId);
+                var account_detail = await _db.UserDetail
+                    .Where(x => x.SystemUserId.Equals(account.SystemUserId))
+                    .FirstOrDefaultAsync();
                 if (account == null)
                 {
                     return ErrorHandler.NotFoundResponse(Message.AccountNotFound);
@@ -136,16 +139,28 @@ namespace Edu_Mgmt_BE.Controllers
                 var roles = await _db.SystemRole
                     .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
                     .ToListAsync();
+
+                if (roles[0]?.RoleId == RoleType.TEACHER)
+                {
+                    var teacher = await _db.Teacher.FindAsync(account_detail.UserId);
+                    result.Add("teacher", teacher);
+                }
+                else if (roles[0]?.RoleId == RoleType.STUDENT)
+                {
+                    var student = await _db.Student.FindAsync(account_detail.UserId);
+                    result.Add("student", student);
+                }
                 result.Add("roles", roles);
 
                 res.Data = result;
                 res.Success = true;
                 res.StatusCode = HttpStatusCode.OK;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 res = ErrorHandler.ErrorCatchResponse(e);
             }
-            
+
             return res;
         }
 
@@ -173,7 +188,7 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             try
             {
-                if (userSignUp.signUpUserType == 2) //teacher
+                if (userSignUp.signUpUserType == RoleType.TEACHER) //teacher
                 {
                     Teacher teacher = new Teacher()
                     {
@@ -183,7 +198,7 @@ namespace Edu_Mgmt_BE.Controllers
                     };
                     res = await UserCreator.TeacherCreate(teacher, userSignUp.UserPassword);
                 }
-                if (userSignUp.signUpUserType == 3) //student
+                if (userSignUp.signUpUserType == RoleType.STUDENT) //student
                 {
                     AddStudentRequest student = new AddStudentRequest()
                     {

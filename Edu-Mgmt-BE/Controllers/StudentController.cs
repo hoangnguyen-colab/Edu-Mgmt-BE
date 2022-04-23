@@ -150,12 +150,14 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 if (file.Length > 0)
                 {
-                    var fileRes = Helper.saveFile(HttpContext, file);
+                    var fileRes = FileUtils.saveFile(HttpContext, file);
                     if (fileRes.success)
                     {
-                        res.Data = Helper.getStudentListExcel(fileRes.filePath);
+                        res.Data = FileUtils.getStudentListExcel(fileRes.filePath);
                         res.Success = true;
                         res.StatusCode = HttpStatusCode.OK;
+
+                        FileUtils.removeFile(fileRes.filePath);
                     }
                     else
                     {

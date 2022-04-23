@@ -382,6 +382,18 @@ namespace Edu_Mgmt_BE.Controllers
                         };
                         newStudentDataList.Add(student_result);
                     }
+                    else
+                    {
+                        var student_check_exist = _db.ClassDetail
+                       .Where(x => x.ClassId.Equals(request.classId))
+                       .Where(x => x.StudentId.Equals(student_result.StudentId))
+                       .FirstOrDefault();
+
+                        if (student_check_exist != null)
+                        {
+                            return ErrorHandler.NotFoundResponse(Message.StudentExist + " Tên: " + student_result.StudentName);
+                        }
+                    }
 
                     studentDataList.Add(student_result);
                     classDetail.Add(new ClassDetail()
@@ -396,6 +408,66 @@ namespace Edu_Mgmt_BE.Controllers
 
                 _db.Student.AddRange(newStudentDataList);
                 _db.ClassDetail.AddRange(classDetail);
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Xóa học sinh trong lớp
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpDelete("remove-student")]
+        public async Task<ServiceResponse> RemoveStudentToClass(RemoveStudentClass request)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                if (request.classId == null || request.classId == Guid.Empty)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.ClassEmpty);
+                }
+                Dictionary<string, object> result = new Dictionary<string, object>();
+
+                var class_result = _db.Class.Find(request.classId);
+                if (class_result == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
+                }
+                result.Add("class", class_result);
+
+                List<ClassDetail> classDetail = new List<ClassDetail>();
+
+                foreach (var studentId in request.studentList)
+                {
+                    var student_result = _db.ClassDetail
+                         .Where(x => x.ClassId.Equals(request.classId))
+                         .Where(x => x.StudentId.Equals(studentId))
+                         .FirstOrDefault();
+
+                    if (student_result == null)
+                    {
+                        return ErrorHandler.NotFoundResponse(Message.StudentNotFound);
+                    }
+                    classDetail.Add(student_result);
+                }
+
+                //result.Add("classDetail", classDetail);
+                _db.ClassDetail.RemoveRange(classDetail);
 
                 await _db.SaveChangesAsync();
 

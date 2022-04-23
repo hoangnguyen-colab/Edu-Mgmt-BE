@@ -6,6 +6,7 @@ using Edu_Mgmt_BE.Models.CustomModel.HomeWork;
 using Edu_Mgmt_BE.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,9 @@ namespace Edu_Mgmt_BE.Controllers
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
+
+        private const string query_get_answer_files = "SELECT DISTINCT FileUpload.* FROM AnswerFileDetail, FileUpload WHERE AnswerFileDetail.AnswerId = @answerId AND FileUpload.FileUploadId = AnswerFileDetail.FileUploadId";
+        private const string query_get_class_by_homework = "SELECT DISTINCT Class.* FROM HomeWorkClassDetail, Class WHERE Class.ClassId = HomeWorkClassDetail.ClassId AND HomeWorkClassDetail.HomeWorkId = @homeWorkId";
 
         public AnswerController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
         {
@@ -53,6 +57,11 @@ namespace Edu_Mgmt_BE.Controllers
                     .Where(x => x.HomeWorkId.Equals(HomeWorkId))
                     .OrderByDescending(x => x.CreatedDate)
                     .ToListAsync();
+
+                foreach (var item in records)
+                {
+                    var student = await _db.Student.FindAsync(item.StudentId);
+                }
 
                 res.Success = true;
                 res.Data = new PagingData()
@@ -168,6 +177,39 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 res = ErrorHandler.ErrorCatchResponse(e);
             }
+            return res;
+        }
+
+        /// <summary>
+        /// Chi tiết bài nộp
+        /// </summary>
+        /// <param id="id"></param>
+        /// <returns></returns>
+        [HttpGet("detail/{id}")]
+        public async Task<ServiceResponse> GetAnswerDetail(Guid? id)
+        {
+            ServiceResponse res = new ServiceResponse();
+            var answer_result = await _db.Answer.FindAsync(id);
+            if (answer_result == null)
+            {
+                return ErrorHandler.NotFoundResponse(Message.AnswerNotFound);
+            }
+
+            var param = new SqlParameter("@answerId", answer_result.AnswerId);
+            var filesRecords = _db.FileUpload
+                .FromSqlRaw(query_get_answer_files, param)
+                .OrderByDescending(x => x.FileUploadName)
+                .ToList();
+            var student = await _db.Student.FindAsync(answer_result.StudentId);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result.Add("homeWork", answer_result);
+            //result.Add("student", student);
+            result.Add("files", filesRecords);
+
+            res.Data = result;
+            res.Success = true;
+            res.StatusCode = HttpStatusCode.OK;
             return res;
         }
 

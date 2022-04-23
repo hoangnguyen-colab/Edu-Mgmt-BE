@@ -209,8 +209,10 @@ WHERE Student.StudentId = UserDetail.UserId
 AND Student.StudentPhone = N'0979045161'
 
 SELECT Student.* FROM Class, ClassDetail, Student
-WHERE Class.ClassId = N'03F47CCC-24B4-484F-B08F-370B3DCBE2BA'
+WHERE Class.ClassId = N'7a5f83a4-7dd3-489c-a992-cfb7a0e61c32'
 AND ClassDetail.ClassId = Class.ClassId
 AND ClassDetail.StudentId = Student.StudentId
 
-select * from Class
+select * from Class, ClassDetail
+WHERE Class.ClassId = N'7a5f83a4-7dd3-489c-a992-cfb7a0e61c32'
+AND Class.ClassId = ClassDetail.ClassId

@@ -119,12 +119,12 @@ namespace Edu_Mgmt_BE.Utils
                 {
                     UserDetailId = Guid.NewGuid(),
                     UserId = teacher.TeacherId,
-                    SystemRoleId = 2,
+                    SystemRoleId = RoleType.TEACHER,
                     SystemUserId = sysUser.SystemUserId,
                 };
                 _db.UserDetail.Add(sysUserDetail);
 
-                var role = await _db.SystemRole.FindAsync(2);
+                var role = await _db.SystemRole.FindAsync(RoleType.TEACHER);
 
                 Dictionary<string, object> result = new Dictionary<string, object>();
                 result.Add("teacher", teacher);
@@ -195,12 +195,12 @@ namespace Edu_Mgmt_BE.Utils
                 {
                     UserDetailId = Guid.NewGuid(),
                     UserId = student_result.StudentId,
-                    SystemRoleId = 3,
+                    SystemRoleId = RoleType.STUDENT,
                     SystemUserId = sysUser.SystemUserId,
                 };
                 _db.UserDetail.Add(sysUserDetail);
 
-                var role = await _db.SystemRole.FindAsync(3);
+                var role = await _db.SystemRole.FindAsync(RoleType.STUDENT);
 
                 Dictionary<string, object> result = new Dictionary<string, object>();
                 result.Add("student", student_result);

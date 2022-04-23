@@ -1,9 +1,5 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using Edu_Mgmt_BE.Models;
+﻿using Edu_Mgmt_BE.Models;
 using Edu_Mgmt_BE.Models.CustomModel.FileSave;
-using Edu_Mgmt_BE.Models.CustomModel.Student;
-using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +8,10 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 namespace Edu_Mgmt_BE.Common
 {
     public static class Helper
@@ -26,31 +19,6 @@ namespace Edu_Mgmt_BE.Common
         private static readonly EduManagementContext _db = new EduManagementContext();
         private static readonly string sql_get_role = "SELECT * FROM SystemRole WHERE RoleId IN (SELECT DISTINCT SystemRoleId FROM UserDetail WHERE SystemUserId = @SystemUserId)";
         private static readonly string sql_get_teacher_id = $"SELECT DISTINCT Teacher.* FROM Teacher JOIN UserDetail ON UserDetail.UserId = Teacher.TeacherId JOIN SystemUser ON UserDetail.SystemUserId = @SystemUserId";
-
-        public static List<StudentExcel> getStudentListExcel(string filePath)
-        {
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            List<StudentExcel> students = new List<StudentExcel>();
-            using (var stream = System.IO.File.Open(filePath, FileMode.Open, FileAccess.Read))
-            {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
-                {
-                    var result = reader.AsDataSet();
-                    DataRowCollection dt = result.Tables[0].Rows;
-                    for (int dataRowCount = 1; dataRowCount < dt.Count; dataRowCount++)
-                    {
-                        students.Add(new StudentExcel()
-                        {
-                            StudentName = dt[dataRowCount][1].ToString().Trim(),
-                            StudentGender = dt[dataRowCount][2].ToString().Trim(),
-                            StudentDob = DateTime.Parse(dt[dataRowCount][3].ToString()).ToString("dd/MM/yyyy"),
-                            StudentPhone = Regex.Replace(dt[dataRowCount][4].ToString().Trim(), @"\s", ""),
-                        });
-                    }
-                }
-            }
-            return students;
-        }
 
         public static string getRole(HttpContext httpContext)
         {
@@ -172,47 +140,6 @@ namespace Edu_Mgmt_BE.Common
         {
             System.Reflection.PropertyInfo propertyInfo = obj.GetType().GetProperty(property);
             return propertyInfo.GetValue(obj, null);
-        }
-
-        public static FileSaveResponse saveFile(HttpContext context, IFormFile file)
-        {
-            FileSaveResponse res = new FileSaveResponse();
-            try
-            {
-                Dictionary<string, object> account_login = JsonConvert
-                    .DeserializeObject<Dictionary<string, object>>(context.User.Identity.Name);
-                if (account_login != null && account_login.ContainsKey("account"))
-                {
-                    JObject jAccount = account_login["account"] as JObject;
-                    SystemUser account = jAccount.ToObject<SystemUser>();
-
-                    string defaultPath = $"{Directory.GetCurrentDirectory()}\\Files\\student-import\\{account.UserUsername}\\";
-
-                    if (!Directory.Exists(defaultPath))
-                    {
-                        Directory.CreateDirectory(defaultPath);
-                    }
-                    string filePath = defaultPath + file.FileName;
-                    using (FileStream fileStream = System.IO.File.Create(filePath))
-                    {
-                        file.CopyTo(fileStream);
-                        fileStream.Flush();
-                    }
-                    res.filePath = filePath;
-                    res.success = true;
-                }
-                else
-                {
-                    res.filePath = "";
-                    res.success = false;
-                }
-            }
-            catch (Exception)
-            {
-                res.filePath = "";
-                res.success = false;
-            }
-            return res;
         }
     }
 }
