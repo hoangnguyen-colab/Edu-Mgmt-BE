@@ -216,3 +216,26 @@ AND ClassDetail.StudentId = Student.StudentId
 select * from Class, ClassDetail
 WHERE Class.ClassId = N'7a5f83a4-7dd3-489c-a992-cfb7a0e61c32'
 AND Class.ClassId = ClassDetail.ClassId
+
+SELECT DISTINCT Class.*, (
+	SELECT DISTINCT count(*) 
+	FROM HomeWorkClassDetail, HomeWork
+	WHERE HomeWorkClassDetail.ClassId = Class.ClassId
+	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId
+	AND HomeWork.HomeWorkStatus = 1
+) as HomeWorkCount 
+FROM Class, HomeWorkClassDetail, HomeWork
+WHERE Class.TeacherId = N'88ca6417-6b71-48b2-9fd9-47c57f384947'
+AND Class.ClassStatus = 2
+
+SELECT DISTINCT Class.*, (
+	SELECT DISTINCT count(*) 
+	FROM HomeWorkClassDetail, HomeWork
+	WHERE HomeWorkClassDetail.ClassId = Class.ClassId
+	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId
+	AND HomeWork.HomeWorkStatus = 1
+) as HomeWorkCount 
+FROM Class, HomeWorkClassDetail, HomeWork, ClassDetail
+WHERE ClassDetail.StudentId = N'10f917ab-a3d8-4af5-b350-be29b5f76432'
+AND ClassDetail.ClassId = Class.ClassId
+AND Class.ClassStatus = 1

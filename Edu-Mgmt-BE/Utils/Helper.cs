@@ -19,22 +19,30 @@ namespace Edu_Mgmt_BE.Common
         private static readonly EduManagementContext _db = new EduManagementContext();
         private static readonly string sql_get_role = "SELECT * FROM SystemRole WHERE RoleId IN (SELECT DISTINCT SystemRoleId FROM UserDetail WHERE SystemUserId = @SystemUserId)";
         private static readonly string sql_get_teacher_id = $"SELECT DISTINCT Teacher.* FROM Teacher JOIN UserDetail ON UserDetail.UserId = Teacher.TeacherId JOIN SystemUser ON UserDetail.SystemUserId = @SystemUserId";
+        private static readonly string sql_get_student_id = $"SELECT DISTINCT Student.* FROM Student JOIN UserDetail ON UserDetail.UserId = Student.StudentId JOIN SystemUser ON UserDetail.SystemUserId = @SystemUserId";
 
-        public static string getRole(HttpContext httpContext)
+        public static int getRole(HttpContext httpContext)
         {
             Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
-            if (account_login != null && account_login.ContainsKey("account"))
+            try
             {
-                JObject jAccount = account_login["account"] as JObject;
-                SystemUser account = jAccount.ToObject<SystemUser>();
+                if (account_login != null && account_login.ContainsKey("account"))
+                {
+                    JObject jAccount = account_login["account"] as JObject;
+                    SystemUser account = jAccount.ToObject<SystemUser>();
 
-                var roles = _db.SystemRole
-                    .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
-                    .ToList();
+                    var roles = _db.SystemRole
+                        .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
+                        .ToList();
 
-                return roles[0].RoleName;
+                    return roles[0]?.RoleId ?? 0;
+                }
+                return 0;
             }
-            return "";
+            catch (Exception ex)
+            {
+                return 0;
+            }
         }
 
         public static Guid? getUserId(HttpContext httpContext)
@@ -62,6 +70,22 @@ namespace Edu_Mgmt_BE.Common
                     .FromSqlRaw(sql_get_teacher_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
 
                 return teacher?.TeacherId;
+            }
+            return null;
+        }
+
+        public static Guid? getStudentId(HttpContext httpContext)
+        {
+            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+            if (account_login != null && account_login.ContainsKey("account"))
+            {
+                JObject jAccount = account_login["account"] as JObject;
+                SystemUser account = jAccount.ToObject<SystemUser>();
+
+                var student = _db.Student
+                    .FromSqlRaw(sql_get_student_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
+
+                return student?.StudentId;
             }
             return null;
         }

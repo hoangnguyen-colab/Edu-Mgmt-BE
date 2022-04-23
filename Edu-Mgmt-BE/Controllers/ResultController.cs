@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Edu_Mgmt_BE.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/result")]
     [ApiController]
     public class ResultController : ControllerBase
     {

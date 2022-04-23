@@ -1,4 +1,5 @@
 ﻿using System;
+using Edu_Mgmt_BE.Models.CustomModel.Class;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -34,6 +35,7 @@ namespace Edu_Mgmt_BE.Models
         public virtual DbSet<SystemUser> SystemUser { get; set; }
         public virtual DbSet<Teacher> Teacher { get; set; }
         public virtual DbSet<UserDetail> UserDetail { get; set; }
+        public DbSet<ClassQuery> ClassQuery { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -46,6 +48,8 @@ namespace Edu_Mgmt_BE.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ClassQuery>().HasNoKey();
+
             modelBuilder.Entity<Answer>(entity =>
             {
                 entity.Property(e => e.AnswerId).HasDefaultValueSql("(newid())");

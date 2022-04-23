@@ -56,8 +56,6 @@ namespace Edu_Mgmt_BE.Controllers
                     .Where(x => x.HomeWorkStatus == status)
                     .ToListAsync();
 
-                string role = Helper.getRole(HttpContext);
-
                 res.Success = true;
                 res.Data = new PagingData()
                 {

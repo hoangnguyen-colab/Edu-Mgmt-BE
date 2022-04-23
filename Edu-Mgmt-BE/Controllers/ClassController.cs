@@ -24,9 +24,9 @@ namespace Edu_Mgmt_BE.Controllers
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
-        private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail WHERE HomeWorkClassDetail.ClassId = Class.ClassId) as HomeWorkCount FROM Class, HomeWorkClassDetail WHERE Class.TeacherId = @teacherId";
+        private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class, HomeWorkClassDetail, HomeWork WHERE Class.TeacherId = @teacherId";
         private const string TeacherClassQuerySearch = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId AND CHARINDEX(@txtSeach, ClassName) > 0";
-        private const string SearchClassQuery = "SELECT * FROM Class WHERE CHARINDEX(@txtSeach, ClassName) > 0 OR CHARINDEX(@txtSeach, ShowClassId) > 0";
+        private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId	AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class, HomeWorkClassDetail, HomeWork, ClassDetail WHERE ClassDetail.StudentId = @studentId AND ClassDetail.ClassId = Class.ClassId";
         private const string StudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId";
         private const string FindStudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId AND Student.StudentId = @studentId";
 
@@ -46,61 +46,48 @@ namespace Edu_Mgmt_BE.Controllers
             [FromQuery] string search,
             [FromQuery] int? page = 1,
             [FromQuery] int? record = 10,
-            [FromQuery] int? status = 1)
+            [FromQuery] int? classStatus = 1)
         {
             ServiceResponse res = new ServiceResponse();
             try
             {
-                List<Class> records = new List<Class>();
-                var teacherId = Helper.getTeacherId(HttpContext);
-                var paramId = new SqlParameter("@teacherId", teacherId);
-                if (search != null && search.Trim() != "")
-                {
-                    var paramSearch = new SqlParameter("@txtSeach", search);
-                    records = _db.Class
-                        .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
-                        .OrderByDescending(x => x.ClassName)
-                        .Where(x => x.ClassStatus == status)
-                        .ToList();
-                }
-                else
-                {
-                    records = _db.Class
-                        .Where(item => item.TeacherId.Equals(teacherId))
-                        .Where(x => x.ClassStatus == status)
-                        .ToList();
-                }
+                var role = Helper.getRole(HttpContext);
+                List<ClassQuery> records = new List<ClassQuery>();
 
-                //string role = Helper.getRole(HttpContext);
-                //if (role.Equals("teacher"))
-                //{
-                //    var teacherId = Helper.getTeacherId(HttpContext);
-                //    if (search != null && search.Trim() != "")
-                //    {
-                //        var paramId = new SqlParameter("@teacherId", teacherId);
-                //        var paramSearch = new SqlParameter("@txtSeach", search);
-                //        records = _db.Class
-                //            .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
-                //            .OrderByDescending(x => x.ClassName)
-                //            .ToList();
-                //    }
-                //    else
-                //    {
-                //        records = _db.Class.Where(item => item.TeacherId.Equals(teacherId)).ToList();
-                //    }
-                //}
-                //else
-                //{
-                //    if (search != null && search.Trim() != "")
-                //    {
-                //        var param = new SqlParameter("@txtSeach", search);
-                //        records = _db.Class.FromSqlRaw(SearchClassQuery, param).OrderByDescending(x => x.ClassName).ToList();
-                //    }
-                //    else
-                //    {
-                //        records = await _db.Class.OrderByDescending(x => x.ClassName).ToListAsync();
-                //    }
-                //}
+                if (role == RoleType.TEACHER)
+                {
+                    var teacherId = Helper.getTeacherId(HttpContext);
+                    var paramId = new SqlParameter("@teacherId", teacherId);
+                    if (search != null && search.Trim() != "")
+                    {
+                        var paramSearch = new SqlParameter("@txtSeach", search);
+                        records = _db.ClassQuery
+                            .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
+                            .OrderByDescending(x => x.ClassName)
+                            .Where(x => x.ClassStatus == classStatus)
+                            .ToList();
+                    }
+                    else
+                    {
+                        records = _db.ClassQuery
+                            .FromSqlRaw(TeacherClassQuery, paramId)
+                            .OrderByDescending(x => x.ClassName)
+                            .Where(x => x.ClassStatus == classStatus)
+                            .ToList();
+
+                    }
+                }
+                else if (role == RoleType.STUDENT)
+                {
+                    var studentId = Helper.getStudentId(HttpContext);
+                    var paramId = new SqlParameter("@studentId", studentId);
+
+                    records = _db.ClassQuery
+                            .FromSqlRaw(StudentClassQuery, paramId)
+                            .OrderByDescending(x => x.ClassName)
+                            .Where(x => x.ClassStatus == classStatus)
+                            .ToList();
+                }
 
                 PagingData pagingData = new PagingData()
                 {
