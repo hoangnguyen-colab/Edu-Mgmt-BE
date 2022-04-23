@@ -23,6 +23,8 @@ namespace Edu_Mgmt_BE.Models
         public int? ClassStatus { get; set; }
         public Guid TeacherId { get; set; }
 
+        [IgnoreDataMember]
+        [JsonIgnore]
         public virtual Teacher Teacher { get; set; }
         [IgnoreDataMember]
         [JsonIgnore]

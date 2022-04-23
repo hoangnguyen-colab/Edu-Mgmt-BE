@@ -45,7 +45,8 @@ namespace Edu_Mgmt_BE.Controllers
         public async Task<ServiceResponse> GetClassByPagingAndSearch(
             [FromQuery] string search,
             [FromQuery] int? page = 1,
-            [FromQuery] int? record = 10)
+            [FromQuery] int? record = 10,
+            [FromQuery] int? status = 1)
         {
             ServiceResponse res = new ServiceResponse();
             try
@@ -59,11 +60,15 @@ namespace Edu_Mgmt_BE.Controllers
                     records = _db.Class
                         .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
                         .OrderByDescending(x => x.ClassName)
+                        .Where(x => x.ClassStatus == status)
                         .ToList();
                 }
                 else
                 {
-                    records = _db.Class.Where(item => item.TeacherId.Equals(teacherId)).ToList();
+                    records = _db.Class
+                        .Where(item => item.TeacherId.Equals(teacherId))
+                        .Where(x => x.ClassStatus == status)
+                        .ToList();
                 }
 
                 //string role = Helper.getRole(HttpContext);
@@ -278,6 +283,41 @@ namespace Edu_Mgmt_BE.Controllers
                 classResult.ClassName = classObj.ClassName.Trim();
                 classResult.ClassYear = schoolYear + "-" + (schoolYear + 1);
 
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = classResult;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Sửa trạng thái lớp
+        /// </summary>
+        /// <param name="classReq"></param>
+        /// <returns></returns>
+        [HttpPut("edit-status")]
+        public async Task<ServiceResponse> EditClassStatus(ClassEditStatus classReq)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                var classResult = await _db.Class.FindAsync(classReq.ClassId);
+                if (classResult == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
+                }
+
+                classResult.ClassStatus = classReq.ClassStatus;
                 await _db.SaveChangesAsync();
 
                 res.Success = true;

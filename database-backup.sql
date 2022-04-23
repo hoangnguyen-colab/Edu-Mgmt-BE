@@ -33,7 +33,7 @@ CREATE TABLE Class
 	ClassId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
 	ClassName NVARCHAR(255),
 	ClassYear NVARCHAR(15),
-	ClassStatus INT,
+	ClassStatus INT DEFAULT 1,
 
 	TeacherId UNIQUEIDENTIFIER REFERENCES Teacher(TeacherId) ON DELETE CASCADE NOT NULL,
 )
@@ -82,7 +82,7 @@ CREATE TABLE HomeWork
 	HomeWorkType NVARCHAR(255) NOT NULL,
 	HomeWorkContent NVARCHAR(MAX),
 	DueDate DATETIME,
-	HomeWorkStatus INT,
+	HomeWorkStatus INT DEFAULT 1,
 	RequiredLogin BIT DEFAULT 0,
 	OnlyAssignStudent BIT DEFAULT 0,
 	CreatedDate DATETIME DEFAULT GETDATE(),
@@ -212,3 +212,5 @@ SELECT Student.* FROM Class, ClassDetail, Student
 WHERE Class.ClassId = N'03F47CCC-24B4-484F-B08F-370B3DCBE2BA'
 AND ClassDetail.ClassId = Class.ClassId
 AND ClassDetail.StudentId = Student.StudentId
+
+select * from Class
