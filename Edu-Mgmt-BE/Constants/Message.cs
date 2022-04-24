@@ -61,9 +61,18 @@ namespace Edu_Mgmt_BE.Constants
         public const string HomeWorkNameEmpty = "Tên bài tập không thể trống.";
         public const string HomeWorkTypeEmpty = "Loại bài tập không thể trống.";
         public const string HomeWorkClassEmpty = "Lớp giao bài tập không thể trống.";
+        public const string HomeWorkEmpty = "Bài tập không thể trống.";
 
         //Xử lý message bài nộp
+        public const string AnswerEmpty = "Bài nộp của học sinh trống.";
         public const string AnswerNotFound = "Không tìm thấy bài nộp này.";
+        public const string AnswerAlreadySubmit = "Học sinh đã nộp bài.";
+
+        //Xử lý message đáp án
+        public const string ResultNotFound = "Không tìm thấy bài nộp này.";
+        public const string ResultSubmit = "Học sinh đã nộp bài.";
+        public const string ResultScoreBadReq = "Điểm không hợp lệ.";
+        public const string ResultAlreadySubmit = "Bài đã được chấm điểm.";
 
         //Xử lý message giáo viên
         public const string TeacherNotFound = "Không tìm thấy giáo viên này.";

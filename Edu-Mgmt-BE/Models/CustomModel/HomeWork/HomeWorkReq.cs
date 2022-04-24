@@ -12,6 +12,7 @@ namespace Edu_Mgmt_BE.Models.CustomModel.HomeWork
         public string HomeWorkContent { get; set; }
         public DateTime? CreatedDate { get; set; }
         public double DueDate { get; set; }
+        public int? HomeWorkStatus { get; set; }
         public bool? RequiredLogin { get; set; }
         public bool? OnlyAssignStudent { get; set; }
         public FileUpload[] FileList { get; set; }

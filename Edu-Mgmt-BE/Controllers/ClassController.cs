@@ -24,9 +24,9 @@ namespace Edu_Mgmt_BE.Controllers
     {
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
-        private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class, HomeWorkClassDetail, HomeWork WHERE Class.TeacherId = @teacherId";
+        private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class WHERE Class.TeacherId = @teacherId";
         private const string TeacherClassQuerySearch = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId AND CHARINDEX(@txtSeach, ClassName) > 0";
-        private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId	AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class, HomeWorkClassDetail, HomeWork, ClassDetail WHERE ClassDetail.StudentId = @studentId AND ClassDetail.ClassId = Class.ClassId";
+        private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId	AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class, ClassDetail WHERE ClassDetail.StudentId = @studentId AND ClassDetail.ClassId = Class.ClassId";
         private const string StudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId";
         private const string FindStudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId AND Student.StudentId = @studentId";
 

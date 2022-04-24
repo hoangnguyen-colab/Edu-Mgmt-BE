@@ -144,19 +144,11 @@ CREATE TABLE Result
 	ResultContent NVARCHAR(MAX),
 	CreatedDate DATETIME DEFAULT GETDATE(),
 	ModifyDate DATETIME DEFAULT GETDATE(),
-)
-GO
-
-CREATE TABLE HomeWorkResultDetail
-(
-	HomeWorkResultDetailId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-	ResultId UNIQUEIDENTIFIER REFERENCES Result(ResultId) ON DELETE CASCADE NOT NULL,
+	
+	TeacherId UNIQUEIDENTIFIER REFERENCES Teacher(TeacherId),
 	AnswerId UNIQUEIDENTIFIER REFERENCES Answer(AnswerId),
-	HomeWorkId UNIQUEIDENTIFIER REFERENCES HomeWork(HomeWorkId),
-	TeacherId UNIQUEIDENTIFIER,
 )
 GO
-
 
 INSERT INTO SystemRole
 VALUES
@@ -224,9 +216,12 @@ SELECT DISTINCT Class.*, (
 	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId
 	AND HomeWork.HomeWorkStatus = 1
 ) as HomeWorkCount 
-FROM Class, HomeWorkClassDetail, HomeWork
-WHERE Class.TeacherId = N'88ca6417-6b71-48b2-9fd9-47c57f384947'
-AND Class.ClassStatus = 2
+FROM Class
+WHERE Class.TeacherId =  N'88ca6417-6b71-48b2-9fd9-47c57f384947'
+AND Class.ClassStatus = 1
+
+select * from Class
+where Class.TeacherId = N'88ca6417-6b71-48b2-9fd9-47c57f384947'
 
 SELECT DISTINCT Class.*, (
 	SELECT DISTINCT count(*) 
@@ -235,7 +230,9 @@ SELECT DISTINCT Class.*, (
 	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId
 	AND HomeWork.HomeWorkStatus = 1
 ) as HomeWorkCount 
-FROM Class, HomeWorkClassDetail, HomeWork, ClassDetail
+FROM Class, ClassDetail
 WHERE ClassDetail.StudentId = N'10f917ab-a3d8-4af5-b350-be29b5f76432'
 AND ClassDetail.ClassId = Class.ClassId
 AND Class.ClassStatus = 1
+
+select * from Result

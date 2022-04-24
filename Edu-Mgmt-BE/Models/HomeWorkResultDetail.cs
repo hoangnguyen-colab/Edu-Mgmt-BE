@@ -13,16 +13,8 @@ namespace Edu_Mgmt_BE.Models
     {
         public Guid HomeWorkResultDetailId { get; set; }
         public Guid ResultId { get; set; }
-        public Guid? AnswerId { get; set; }
-        public Guid? HomeWorkId { get; set; }
         public Guid? TeacherId { get; set; }
 
-        [IgnoreDataMember]
-        [JsonIgnore]
-        public virtual Answer Answer { get; set; }
-        [IgnoreDataMember]
-        [JsonIgnore]
-        public virtual HomeWork HomeWork { get; set; }
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual Result Result { get; set; }

@@ -123,6 +123,15 @@ namespace Edu_Mgmt_BE.Controllers
                     {
                         return ErrorHandler.BadRequestResponse(Message.StudentNotFound);
                     }
+
+                    var student_submit_check = await _db.Answer
+                        .Where(x => x.StudentId.Equals(student.StudentId) && x.ClassId.Equals(class_result.ClassId))
+                        .FirstOrDefaultAsync();
+
+                    if (student_submit_check != null)
+                    {
+                        return ErrorHandler.BadRequestResponse(Message.AnswerAlreadySubmit);
+                    }
                 }
                 result.Add("student", student);
 

@@ -302,5 +302,132 @@ namespace Edu_Mgmt_BE.Controllers
             }
             return res;
         }
+
+        /// <summary>
+        /// Sửa bài tập
+        /// </summary>
+        /// <param name="homeworkReq"></param>
+        /// <returns></returns>
+        [HttpPut("edit/{id}")]
+        public async Task<ServiceResponse> EditHomeWork(Guid? id, HomeWorkReq homeworkReq)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                if (id == null || id == Guid.Empty)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkEmpty);
+                }
+                var hm_result = await _db.HomeWork.FindAsync(id);
+                if (hm_result == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.HomeWorkNotFound);
+                }
+
+                if (homeworkReq.ClassList is null || homeworkReq.ClassList?.Length == 0)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkClassEmpty);
+                }
+
+                foreach (var classId in homeworkReq.ClassList)
+                {
+                    var class_find = _db.Class.Find(classId);
+                    if (class_find == null)
+                    {
+                        return ErrorHandler.BadRequestResponse(Message.ClassNotFound);
+                    }
+                }
+                
+                if (string.IsNullOrEmpty(homeworkReq.HomeWorkName))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkNameEmpty);
+                }
+                if (string.IsNullOrEmpty(homeworkReq.HomeWorkType))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkTypeEmpty);
+                }
+
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                hm_result.HomeWorkName = homeworkReq.HomeWorkName.Trim();
+                hm_result.HomeWorkType = homeworkReq.HomeWorkType.Trim();
+                hm_result.HomeWorkContent = homeworkReq.HomeWorkContent;
+                hm_result.DueDate = DateTimeUtils.UnixTimeStampToDateTime(homeworkReq.DueDate);
+                hm_result.HomeWorkStatus = homeworkReq.HomeWorkStatus;
+                hm_result.OnlyAssignStudent = homeworkReq.OnlyAssignStudent;
+                hm_result.RequiredLogin = homeworkReq.RequiredLogin;
+                result.Add("homeWork", hm_result);
+
+                //remove old files
+                var oldFiles = await _db.HomeWorkFileDetail.Where(x => x.HomeWorkId.Equals(id)).ToListAsync();
+                _db.HomeWorkFileDetail.RemoveRange(oldFiles);
+
+                if (homeworkReq.FileList?.Length > 0)
+                {
+                    List<FileUpload> fileList = new List<FileUpload>();
+                    List<HomeWorkFileDetail> fileListDetail = new List<HomeWorkFileDetail>();
+                    foreach (var file in homeworkReq.FileList)
+                    {
+                        FileUpload fileItem = new FileUpload()
+                        {
+                            FileUploadId = Guid.NewGuid(),
+                            FileUploadName = file.FileUploadName,
+                            FileUploadUrl = file.FileUploadUrl,
+                        };
+
+                        fileList.Add(fileItem);
+                        fileListDetail.Add(new HomeWorkFileDetail()
+                        {
+                            FileUploadDetailId = Guid.NewGuid(),
+                            HomeWorkId = hm_result.HomeWorkId,
+                            FileUploadId = fileItem.FileUploadId,
+                        });
+                    }
+
+                    _db.FileUpload.AddRange(fileList);
+                    _db.HomeWorkFileDetail.AddRange(fileListDetail);
+                    result.Add("fileList", fileList);
+                    //result.Add("fileDetail", fileListDetail);
+                }
+
+                //remove old classes
+                var oldClasses = await _db.HomeWorkClassDetail.Where(x => x.HomeWorkId.Equals(id)).ToListAsync();
+                _db.HomeWorkClassDetail.RemoveRange(oldClasses);
+
+                List<HomeWorkClassDetail> classDetailList = new List<HomeWorkClassDetail>();
+                List<Class> classes = new List<Class>();
+
+                foreach (var classId in homeworkReq.ClassList)
+                {
+                    Class item = await _db.Class.FindAsync(classId);
+                    if (item != null)
+                    {
+                        classDetailList.Add(new HomeWorkClassDetail()
+                        {
+                            ClassId = item.ClassId,
+                            HomeWorkId = hm_result.HomeWorkId,
+                        });
+                        classes.Add(item);
+                    }
+                }
+                result.Add("classes", classes);
+                _db.HomeWorkClassDetail.AddRange(classDetailList);
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
     }
 }

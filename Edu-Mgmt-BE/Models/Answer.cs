@@ -14,7 +14,7 @@ namespace Edu_Mgmt_BE.Models
         public Answer()
         {
             AnswerFileDetail = new HashSet<AnswerFileDetail>();
-            HomeWorkResultDetail = new HashSet<HomeWorkResultDetail>();
+            Result = new HashSet<Result>();
         }
 
         public Guid AnswerId { get; set; }
@@ -35,6 +35,6 @@ namespace Edu_Mgmt_BE.Models
         public virtual ICollection<AnswerFileDetail> AnswerFileDetail { get; set; }
         [IgnoreDataMember]
         [JsonIgnore]
-        public virtual ICollection<HomeWorkResultDetail> HomeWorkResultDetail { get; set; }
+        public virtual ICollection<Result> Result { get; set; }
     }
 }

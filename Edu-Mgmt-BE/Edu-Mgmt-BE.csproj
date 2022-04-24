@@ -30,7 +30,7 @@
   </ItemGroup>
 
  <ItemGroup>
-   <Folder Include="Files\student-import\" />
+   <Folder Include="Files\" />
  </ItemGroup>
 
 </Project>

@@ -14,6 +14,7 @@ namespace Edu_Mgmt_BE.Models
         public Teacher()
         {
             Class = new HashSet<Class>();
+            Result = new HashSet<Result>();
         }
 
         public Guid TeacherId { get; set; }
@@ -26,5 +27,6 @@ namespace Edu_Mgmt_BE.Models
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual ICollection<Class> Class { get; set; }
+        public virtual ICollection<Result> Result { get; set; }
     }
 }
