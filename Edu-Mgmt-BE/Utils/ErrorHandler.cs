@@ -49,11 +49,11 @@ namespace Edu_Mgmt_BE.Utils
             return res;
         }
 
-        public static ServiceResponse BadRequestResponse(string errorMessage = Message.BadRequest)
+        public static ServiceResponse BadRequestResponse(string errorMessage = Message.BadRequest, object data = null)
         {
             ServiceResponse res = new ServiceResponse()
             {
-                Data = null,
+                Data = data,
                 Success = false,
                 Message = errorMessage,
                 ErrorCode = 400,

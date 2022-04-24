@@ -235,4 +235,4 @@ WHERE ClassDetail.StudentId = N'10f917ab-a3d8-4af5-b350-be29b5f76432'
 AND ClassDetail.ClassId = Class.ClassId
 AND Class.ClassStatus = 1
 
-select * from Result
+select * from Answer

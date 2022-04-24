@@ -26,6 +26,7 @@ namespace Edu_Mgmt_BE.Controllers
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
 
+        private const string StudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId";
         private const string query_get_homework_files = "SELECT DISTINCT FileUpload.* FROM HomeWorkFileDetail, FileUpload WHERE HomeWorkFileDetail.HomeWorkId = @homeWorkId AND FileUpload.FileUploadId = HomeWorkFileDetail.FileUploadId";
         private const string query_get_homework_by_class = "SELECT DISTINCT HomeWork.* FROM HomeWorkClassDetail, HomeWork WHERE HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWorkClassDetail.ClassId = @classId";
         private const string query_get_class_by_homework = "SELECT DISTINCT Class.* FROM HomeWorkClassDetail, Class WHERE Class.ClassId = HomeWorkClassDetail.ClassId AND HomeWorkClassDetail.HomeWorkId = @homeWorkId";
@@ -341,7 +342,7 @@ namespace Edu_Mgmt_BE.Controllers
                         return ErrorHandler.BadRequestResponse(Message.ClassNotFound);
                     }
                 }
-                
+
                 if (string.IsNullOrEmpty(homeworkReq.HomeWorkName))
                 {
                     return ErrorHandler.BadRequestResponse(Message.HomeWorkNameEmpty);
@@ -417,6 +418,108 @@ namespace Edu_Mgmt_BE.Controllers
                 _db.HomeWorkClassDetail.AddRange(classDetailList);
 
                 await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Check bài tập
+        /// </summary>
+        /// <param name="homeworkReq"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpPost("check")]
+        public async Task<ServiceResponse> CheckHomeWork(HomeWorkCheck req)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                Dictionary<string, object> result = new Dictionary<string, object>();
+
+                if (req.ClassId == null || req.ClassId == Guid.Empty)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.ClassEmpty);
+                }
+                if (req.HomeWorkId == null || req.HomeWorkId == Guid.Empty)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkEmpty);
+                }
+
+                var classResult = await _db.Class.FindAsync(req.ClassId);
+                if (classResult == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
+                }
+
+                var hwResult = await _db.HomeWork.FindAsync(req.HomeWorkId);
+                if (hwResult == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.HomeWorkNotFound);
+                }
+
+                var paramId = new SqlParameter("@classId", req.ClassId);
+                List<Student> studentList = _db.Student
+                            .FromSqlRaw(StudentInClassQuery, paramId)
+                            .OrderByDescending(x => x.StudentName)
+                            .ToList();
+
+                Student student = studentList.Where(item =>
+            StringUtils.VietnameseNormalize(item.StudentName)
+            .Equals(StringUtils.VietnameseNormalize(req.StudentName)) &&
+            item.StudentPhone.Trim().Equals(req.StudentPhone.Trim()) &&
+            item.StudentDob.Trim().Equals(req.StudentDob.Trim()))
+                .FirstOrDefault();
+
+                //result.Add("student", student);
+
+                if (student != null)
+                {
+                    var answer_check = await _db.Answer
+                        .Where(x => x.ClassId.Equals(req.ClassId) && x.StudentId.Equals(student.StudentId))
+                        .FirstOrDefaultAsync();
+
+                    if (answer_check != null)
+                    {
+                        var result_check = await _db.Result
+                            .Where(x => x.AnswerId.Equals(answer_check.AnswerId))
+                            .FirstOrDefaultAsync();
+
+                        if (result_check != null)
+                        {
+                            result.Add("result", result_check);
+                            res.Success = true;
+                            res.Data = result;
+                            res.StatusCode = HttpStatusCode.OK;
+                            return res;
+                        }
+
+                        result.Add("anwer", answer_check);
+                        res.Success = true;
+                        res.Data = result;
+                        res.StatusCode = HttpStatusCode.OK;
+                        return res;
+                    }
+                }
+                else
+                {
+                    if (hwResult.OnlyAssignStudent == true)
+                    {
+                        var teacher = await _db.Teacher.FindAsync(hwResult.TeacherId);
+                        return ErrorHandler.BadRequestResponse(Message.HomeWorkOnlyAssignStudent, teacher);
+                    }
+                }
 
                 res.Success = true;
                 res.Data = result;

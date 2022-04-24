@@ -41,7 +41,7 @@ namespace Edu_Mgmt_BE.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=OPEN-AI;Database=EduManagement;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("workstation id=edu-management-db.mssql.somee.com;packet size=4096;user id=hoangnguyencolab_SQLLogin_1;pwd=kwmozz73is;data source=edu-management-db.mssql.somee.com;persist security info=False;initial catalog=edu-management-db");
             }
         }
 
