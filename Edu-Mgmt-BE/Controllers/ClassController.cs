@@ -269,6 +269,7 @@ namespace Edu_Mgmt_BE.Controllers
 
                 classResult.ClassName = classObj.ClassName.Trim();
                 classResult.ClassYear = schoolYear + "-" + (schoolYear + 1);
+                classResult.ClassStatus = classObj.ClassStatus;
 
                 await _db.SaveChangesAsync();
 
