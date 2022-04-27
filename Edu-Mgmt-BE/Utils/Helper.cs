@@ -90,6 +90,23 @@ namespace Edu_Mgmt_BE.Common
             return null;
         }
 
+        public static Student getStudentDetail(HttpContext httpContext)
+        {
+            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+            if (account_login != null && account_login.ContainsKey("account"))
+            {
+                JObject jAccount = account_login["account"] as JObject;
+                SystemUser account = jAccount.ToObject<SystemUser>();
+
+                var student = _db.Student
+                    .FromSqlRaw(sql_get_student_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
+
+                return student;
+            }
+            return null;
+        }
+
+
         public static bool CheckPermission(HttpContext httpContext, string role_code)
         {
             Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);

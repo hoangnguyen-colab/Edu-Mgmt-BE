@@ -38,6 +38,7 @@ namespace Edu_Mgmt_BE.Constants
         //Xử lý message file
         public const string FileUploadFail = "Tải lên file thất bại.";
         public const string FileEmpty = "File trống.";
+        public const string FileNotFound = "Không tìm thấy file.";
         public const string FileReadFail = "Đọc file thất bại.";
         public const string FileServerFail = "Đã có lỗi, thử lại sau hoặc sử dụng định dạng file theo mẫu.";
 

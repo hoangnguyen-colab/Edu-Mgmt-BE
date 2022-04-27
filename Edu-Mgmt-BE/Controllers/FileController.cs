@@ -58,5 +58,37 @@ namespace Edu_Mgmt_BE.Controllers
             return res;
         }
 
+        /// <summary>
+        /// View file
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpGet("detail/{id}")]
+        public async Task<ServiceResponse> ViewFile(Guid id)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+
+                var file = await _db.FileUpload.FindAsync(id);
+
+                if (file == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.FileNotFound);
+                }
+
+                res.Data = file;
+                res.Success = true;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+
     }
 }

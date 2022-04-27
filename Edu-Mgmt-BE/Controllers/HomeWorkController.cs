@@ -440,10 +440,6 @@ namespace Edu_Mgmt_BE.Controllers
         public async Task<ServiceResponse> CheckHomeWork(HomeWorkCheck req)
         {
             ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
-            {
-                return ErrorHandler.UnauthorizeCatchResponse();
-            }
             try
             {
                 Dictionary<string, object> result = new Dictionary<string, object>();

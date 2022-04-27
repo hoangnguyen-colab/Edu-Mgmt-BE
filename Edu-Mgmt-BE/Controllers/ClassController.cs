@@ -26,7 +26,7 @@ namespace Edu_Mgmt_BE.Controllers
         private readonly EduManagementContext _db;
         private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class WHERE Class.TeacherId = @teacherId";
         private const string TeacherClassQuerySearch = "SELECT DISTINCT Class.* FROM Class WHERE Class.TeacherId = @teacherId AND CHARINDEX(@txtSeach, ClassName) > 0";
-        private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId	AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class, ClassDetail WHERE ClassDetail.StudentId = @studentId AND ClassDetail.ClassId = Class.ClassId";
+        private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT COUNT(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) AS HomeWorkCount FROM Class, ClassDetail, Student WHERE ClassDetail.StudentId = Student.StudentId AND Class.ClassId = ClassDetail.ClassId AND Student.StudentName = @studentName AND Student.StudentDOB = @studentDob AND Student.StudentPhone = @studentPhone";
         private const string StudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId";
         private const string FindStudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId AND Student.StudentId = @studentId";
 
@@ -79,11 +79,13 @@ namespace Edu_Mgmt_BE.Controllers
                 }
                 else if (role == RoleType.STUDENT)
                 {
-                    var studentId = Helper.getStudentId(HttpContext);
-                    var paramId = new SqlParameter("@studentId", studentId);
+                    var student = Helper.getStudentDetail(HttpContext);
+                    var paramName = new SqlParameter("@studentName", student.StudentName);
+                    var paramDob = new SqlParameter("@studentDob", student.StudentDob);
+                    var paramPhone = new SqlParameter("@studentPhone", student.StudentPhone);
 
                     records = _db.ClassQuery
-                            .FromSqlRaw(StudentClassQuery, paramId)
+                            .FromSqlRaw(StudentClassQuery, paramName, paramDob, paramPhone)
                             .OrderByDescending(x => x.ClassName)
                             .Where(x => x.ClassStatus == classStatus)
                             .ToList();
