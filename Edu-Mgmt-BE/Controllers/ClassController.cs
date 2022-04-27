@@ -413,12 +413,77 @@ namespace Edu_Mgmt_BE.Controllers
         }
 
         /// <summary>
+        /// Edit học sinh trong lớp
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpPut("edit-student/{classId}")]
+        public async Task<ServiceResponse> EditStudentInClass(Guid classId, Student studentReq)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                if (classId == null || classId == Guid.Empty)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.ClassEmpty);
+                }
+                Dictionary<string, object> result = new Dictionary<string, object>();
+
+                var class_result = _db.Class.Find(classId);
+                if (class_result == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.ClassNotFound);
+                }
+                result.Add("class", class_result);
+
+                var student_check = await _db.Student
+                    .Where(x =>
+                     x.StudentName.Equals(studentReq.StudentName.Trim())
+                    && x.StudentDob.Equals(studentReq.StudentDob.Trim())
+                    && x.StudentPhone.Equals(studentReq.StudentPhone.Trim())
+                    ).FirstOrDefaultAsync();
+
+                if (student_check.StudentId != studentReq.StudentId)
+                {
+                    student_check.StudentName = studentReq.StudentName.Trim();
+                    student_check.StudentDob= studentReq.StudentDob.Trim();
+                    student_check.StudentPhone = studentReq.StudentName.Trim();
+                    student_check.StudentGender = studentReq.StudentGender.Trim();
+
+                    result.Add("student_check", student_check);
+                } else
+                {
+                    //var student_class = _db.ClassDetail.Where(x => x)
+                }
+
+                result.Add("student", studentReq);
+
+
+
+                //await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+        /// <summary>
         /// Xóa học sinh trong lớp
         /// </summary>
         /// <param name="class"></param>
         /// <returns></returns>
-        [HttpDelete("remove-student")]
-        public async Task<ServiceResponse> RemoveStudentToClass(RemoveStudentClass request)
+        [HttpPut("remove-student")]
+        public async Task<ServiceResponse> RemoveStudentFromClass(RemoveStudentClass request)
         {
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))

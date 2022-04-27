@@ -471,12 +471,7 @@ namespace Edu_Mgmt_BE.Controllers
                             .OrderByDescending(x => x.StudentName)
                             .ToList();
 
-                Student student = studentList.Where(item =>
-            StringUtils.VietnameseNormalize(item.StudentName)
-            .Equals(StringUtils.VietnameseNormalize(req.StudentName)) &&
-            item.StudentPhone.Trim().Equals(req.StudentPhone.Trim()) &&
-            item.StudentDob.Trim().Equals(req.StudentDob.Trim()))
-                .FirstOrDefault();
+                Student student = studentList.Where(item => item.StudentPhone.Trim().Equals(req.StudentPhone.Trim())).FirstOrDefault();
 
                 //result.Add("student", student);
 
