@@ -89,10 +89,10 @@ namespace Edu_Mgmt_BE.Controllers
         public async Task<ServiceResponse> SubmitHomeWork(HomeWorkAnswer answerReq)
         {
             ServiceResponse res = new ServiceResponse();
-            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
-            {
-                return ErrorHandler.UnauthorizeCatchResponse();
-            }
+            //if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            //{
+            //    return ErrorHandler.UnauthorizeCatchResponse();
+            //}
             try
             {
                 Dictionary<string, object> result = new Dictionary<string, object>();

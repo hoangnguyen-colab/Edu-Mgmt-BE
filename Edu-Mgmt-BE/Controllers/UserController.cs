@@ -12,6 +12,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -54,11 +55,11 @@ namespace Edu_Mgmt_BE.Controllers
                     //CHARINDEX tìm không phân biệt hoa thường trả về vị trí đầu tiên xuất hiện của chuỗi con
                     string sql_get_account = "select * from SystemUser where CHARINDEX(@txtSeach, Username) > 0 or CHARINDEX(@txtSeach, UserUsername) > 0";
                     var param = new SqlParameter("@txtSeach", search);
-                    records = _db.SystemUser.FromSqlRaw(sql_get_account, param).OrderByDescending(x => x.Username).ToList();
+                    records = _db.SystemUser.FromSqlRaw(sql_get_account, param).OrderByDescending(x => x.Fullname).ToList();
                 }
                 else
                 {
-                    records = await _db.SystemUser.OrderByDescending(x => x.Username).ToListAsync();
+                    records = await _db.SystemUser.OrderByDescending(x => x.Fullname).ToListAsync();
                 }
 
                 res.Success = true;
@@ -145,11 +146,11 @@ namespace Edu_Mgmt_BE.Controllers
                     var teacher = await _db.Teacher.FindAsync(account_detail.UserId);
                     result.Add("teacher", teacher);
                 }
-                else if (roles[0]?.RoleId == RoleType.STUDENT)
-                {
-                    var student = await _db.Student.FindAsync(account_detail.UserId);
-                    result.Add("student", student);
-                }
+                //else if (roles[0]?.RoleId == RoleType.STUDENT)
+                //{
+                //    var student = await _db.Student.FindAsync(account_detail.UserId);
+                //    result.Add("student", student);
+                //}
                 result.Add("roles", roles);
 
                 res.Data = result;
@@ -188,26 +189,51 @@ namespace Edu_Mgmt_BE.Controllers
             ServiceResponse res = new ServiceResponse();
             try
             {
+                DateTime date;
+                if (!DateTime.TryParseExact(userSignUp.UserDOB?.Trim(), "dd'/'MM'/'yyyy",
+                                           CultureInfo.InvariantCulture,
+                                           DateTimeStyles.None,
+                                           out date))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.InvalidDOB);
+                }
+
+                string phoneNumber = userSignUp.UserPhone?.Trim();
+                if (!StringUtils.IsPhoneNumber(phoneNumber))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.InvalidPhone);
+                }
+                if (phoneNumber.Substring(0, 3) == "+84")
+                {
+                    userSignUp.UserPhone = userSignUp.UserPhone.Trim().Replace("+84", "0");
+                }
+
                 if (userSignUp.signUpUserType == RoleType.TEACHER) //teacher
                 {
                     Teacher teacher = new Teacher()
                     {
-                        TeacherName = userSignUp.UserName,
-                        TeacherPhone = userSignUp.UserPhone,
-                        TeacherEmail = userSignUp.UserEmail
+                        TeacherName = userSignUp.UserName?.Trim(),
+                        TeacherPhone = userSignUp.UserPhone?.Trim(),
+                        TeacherEmail = userSignUp.UserEmail?.Trim(),
+                        TeacherGender = userSignUp.UserGender?.Trim(),
+                        TeacherDob = userSignUp.UserDOB?.Trim(),
                     };
-                    res = await UserCreator.TeacherCreate(teacher, userSignUp.UserPassword);
+                    return await UserCreator.TeacherCreate(teacher, userSignUp.UserPassword);
                 }
                 if (userSignUp.signUpUserType == RoleType.STUDENT) //student
                 {
                     AddStudentRequest student = new AddStudentRequest()
                     {
-                        StudentName = userSignUp.UserName,
-                        StudentPhone = userSignUp.UserPhone
+                        StudentName = userSignUp.UserName?.Trim(),
+                        StudentPhone = userSignUp.UserPhone?.Trim(),
+                        StudentDob = userSignUp.UserDOB,
+                        StudentGender = userSignUp.UserGender?.Trim(),
                     };
-                    res = await UserCreator.StudentCreate(student, userSignUp.UserPassword);
+                    return await UserCreator.StudentCreate(student, userSignUp.UserPassword);
                 }
 
+                res.Data = null;
+                res.Success = false;
                 return res;
             }
             catch (Exception e)

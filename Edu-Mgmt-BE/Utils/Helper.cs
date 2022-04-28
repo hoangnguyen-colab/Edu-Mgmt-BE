@@ -74,7 +74,7 @@ namespace Edu_Mgmt_BE.Common
             return null;
         }
 
-        public static Guid? getStudentId(HttpContext httpContext)
+        public static SystemUser getStudentDetail(HttpContext httpContext)
         {
             Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
             if (account_login != null && account_login.ContainsKey("account"))
@@ -82,26 +82,7 @@ namespace Edu_Mgmt_BE.Common
                 JObject jAccount = account_login["account"] as JObject;
                 SystemUser account = jAccount.ToObject<SystemUser>();
 
-                var student = _db.Student
-                    .FromSqlRaw(sql_get_student_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
-
-                return student?.StudentId;
-            }
-            return null;
-        }
-
-        public static Student getStudentDetail(HttpContext httpContext)
-        {
-            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
-            if (account_login != null && account_login.ContainsKey("account"))
-            {
-                JObject jAccount = account_login["account"] as JObject;
-                SystemUser account = jAccount.ToObject<SystemUser>();
-
-                var student = _db.Student
-                    .FromSqlRaw(sql_get_student_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
-
-                return student;
+                return account;
             }
             return null;
         }

@@ -10,8 +10,11 @@ namespace Edu_Mgmt_BE.Models
     public partial class SystemUser
     {
         public Guid SystemUserId { get; set; }
-        public string Username { get; set; }
         public string UserUsername { get; set; }
         public string UserPassword { get; set; }
+        public string Fullname { get; set; }
+        public string UserPhone { get; set; }
+        public string UserDob { get; set; }
+        public string UserGender { get; set; }
     }
 }

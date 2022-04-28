@@ -54,5 +54,10 @@ namespace Edu_Mgmt_BE.Utils
             }
             return formatString;
         }
+
+        public static bool IsPhoneNumber(string number)
+        {
+            return Regex.Match(number, @"^([\+]?84[-]?|[0])?[1-9][0-9]{8}$").Success;
+        }
     }
 }

@@ -16,15 +16,13 @@ namespace Edu_Mgmt_BE.Utils
     public class UserCreator
     {
         private static readonly EduManagementContext _db = new EduManagementContext();
-        private const string StudentCheckAccount = @"SELECT UserDetail.* FROM Student, UserDetail
-        WHERE Student.StudentId = UserDetail.UserId
-        AND Student.StudentPhone = @studentPhone";
+        private const string StudentCheckAccount = @"SELECT UserDetail.* FROM UserDetail, SystemUser WHERE SystemUser.SystemUserId = UserDetail.SystemUserId AND SystemUser.UserPhone = @studentPhone AND UserDetail.SystemRoleId = 3";
 
         public static async Task<ServiceResponse> AdminCreate(SystemUser systemUser)
         {
             try
             {
-                if (string.IsNullOrEmpty(systemUser.Username))
+                if (string.IsNullOrEmpty(systemUser.Fullname))
                 {
                     return ErrorHandler.BadRequestResponse(Message.UserNameEmpty);
                 }
@@ -45,9 +43,10 @@ namespace Edu_Mgmt_BE.Utils
                 }
 
                 systemUser.SystemUserId = Guid.NewGuid();
-                systemUser.Username = systemUser.Username.Trim();
-                systemUser.UserUsername = systemUser.UserUsername.Trim();
-                systemUser.UserPassword = Helper.EncodeMD5(systemUser.UserPassword.Trim());
+                systemUser.Fullname = systemUser.Fullname;
+                systemUser.UserPhone = systemUser.UserPhone;
+                systemUser.UserUsername = systemUser.UserUsername;
+                systemUser.UserPassword = Helper.EncodeMD5(systemUser.UserPassword);
                 _db.SystemUser.Add(systemUser);
 
                 UserDetail sysUserDetail = new UserDetail
@@ -93,6 +92,7 @@ namespace Edu_Mgmt_BE.Utils
                 {
                     return ErrorHandler.BadRequestResponse(Message.TeacherPhoneEmpty);
                 }
+               
                 var teacher_result = _db.Teacher
                     .Where(item => item.TeacherPhone.Equals(teacher.TeacherPhone.Trim()))
                     .FirstOrDefault();
@@ -104,14 +104,20 @@ namespace Edu_Mgmt_BE.Utils
                 teacher.TeacherId = Guid.NewGuid();
                 teacher.TeacherName = teacher.TeacherName.Trim();
                 teacher.TeacherPhone = teacher.TeacherPhone.Trim();
+                teacher.TeacherDob = teacher.TeacherDob?.Trim();
+                teacher.TeacherEmail = teacher.TeacherEmail?.Trim();
+                teacher.TeacherGender = teacher.TeacherGender?.Trim();
                 _db.Teacher.Add(teacher);
 
                 SystemUser sysUser = new SystemUser
                 {
                     SystemUserId = Guid.NewGuid(),
-                    Username = teacher.TeacherName,
                     UserUsername = teacher.TeacherPhone,
                     UserPassword = (string.IsNullOrEmpty(password)) ? Helper.EncodeMD5(teacher.TeacherPhone) : Helper.EncodeMD5(password),
+                    Fullname = teacher.TeacherName,
+                    UserPhone = teacher.TeacherPhone,
+                    UserGender = teacher.TeacherGender,
+                    UserDob = teacher.TeacherDob,
                 };
                 _db.SystemUser.Add(sysUser);
 
@@ -158,21 +164,8 @@ namespace Edu_Mgmt_BE.Utils
                 {
                     return ErrorHandler.BadRequestResponse(Message.StudentPhoneEmpty);
                 }
-                var student_result = _db.Student
-                    .Where(item => item.StudentPhone.Equals(studentReq.StudentPhone.Trim()))
-                    .FirstOrDefault();
-                if (student_result == null)
-                {
-                    student_result = new Student()
-                    {
-                        StudentId = Guid.NewGuid(),
-                        StudentName = studentReq.StudentName.Trim(),
-                        StudentPhone = studentReq.StudentPhone.Trim(),
-                    };
-                    _db.Student.Add(student_result);
-                }
 
-                var paramPhone = new SqlParameter("@studentPhone", studentReq.StudentPhone.Trim());
+                var paramPhone = new SqlParameter("@studentPhone", studentReq.StudentPhone);
                 var account_detail = await _db.UserDetail
                     .FromSqlRaw(StudentCheckAccount, paramPhone)
                     .FirstOrDefaultAsync();
@@ -185,16 +178,19 @@ namespace Edu_Mgmt_BE.Utils
                 SystemUser sysUser = new SystemUser
                 {
                     SystemUserId = Guid.NewGuid(),
-                    Username = student_result.StudentName,
-                    UserUsername = student_result.StudentPhone,
-                    UserPassword = (string.IsNullOrEmpty(password)) ? Helper.EncodeMD5(student_result.StudentPhone) : Helper.EncodeMD5(password),
+                    UserUsername = studentReq.StudentPhone,
+                    UserPassword = Helper.EncodeMD5(password),
+                    Fullname = studentReq.StudentName,
+                    UserPhone = studentReq.StudentPhone,
+                    UserGender = studentReq.StudentGender,
+                    UserDob = studentReq.StudentDob,
                 };
                 _db.SystemUser.Add(sysUser);
 
                 UserDetail sysUserDetail = new UserDetail
                 {
                     UserDetailId = Guid.NewGuid(),
-                    UserId = student_result.StudentId,
+                    UserId = null,
                     SystemRoleId = RoleType.STUDENT,
                     SystemUserId = sysUser.SystemUserId,
                 };
@@ -203,8 +199,7 @@ namespace Edu_Mgmt_BE.Utils
                 var role = await _db.SystemRole.FindAsync(RoleType.STUDENT);
 
                 Dictionary<string, object> result = new Dictionary<string, object>();
-                result.Add("student", student_result);
-                result.Add("studentAccount", sysUser);
+                result.Add("studentInfo", sysUser);
                 result.Add("role", role);
                 await _db.SaveChangesAsync();
 

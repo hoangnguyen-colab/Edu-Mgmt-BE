@@ -79,10 +79,10 @@ namespace Edu_Mgmt_BE.Controllers
                 }
                 else if (role == RoleType.STUDENT)
                 {
-                    var student = Helper.getStudentDetail(HttpContext);
-                    var paramName = new SqlParameter("@studentName", student.StudentName);
-                    var paramDob = new SqlParameter("@studentDob", student.StudentDob);
-                    var paramPhone = new SqlParameter("@studentPhone", student.StudentPhone);
+                    SystemUser systemUser = Helper.getStudentDetail(HttpContext);
+                    var paramName = new SqlParameter("@studentName", systemUser.Fullname);
+                    var paramDob = new SqlParameter("@studentDob", systemUser.UserDob);
+                    var paramPhone = new SqlParameter("@studentPhone", systemUser.UserPhone);
 
                     records = _db.ClassQuery
                             .FromSqlRaw(StudentClassQuery, paramName, paramDob, paramPhone)

@@ -80,7 +80,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<AnswerFileDetail>(entity =>
             {
                 entity.HasKey(e => e.FileUploadDetailId)
-                    .HasName("PK__AnswerFi__F1AA951B5F50A04D");
+                    .HasName("PK__AnswerFi__F1AA951BE40DB43D");
 
                 entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
 
@@ -162,7 +162,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<HomeWorkClassDetail>(entity =>
             {
                 entity.HasKey(e => e.HomeWorkClassDetail1)
-                    .HasName("PK__HomeWork__8AF9F51D73989624");
+                    .HasName("PK__HomeWork__8AF9F51D3095738F");
 
                 entity.Property(e => e.HomeWorkClassDetail1)
                     .HasColumnName("HomeWorkClassDetail")
@@ -182,7 +182,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<HomeWorkFileDetail>(entity =>
             {
                 entity.HasKey(e => e.FileUploadDetailId)
-                    .HasName("PK__HomeWork__F1AA951B72ADFF8C");
+                    .HasName("PK__HomeWork__F1AA951B6C1B857F");
 
                 entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
 
@@ -246,7 +246,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<SystemRole>(entity =>
             {
                 entity.HasKey(e => e.RoleId)
-                    .HasName("PK__SystemRo__8AFACE1AD416C494");
+                    .HasName("PK__SystemRo__8AFACE1A556B8C01");
 
                 entity.Property(e => e.RoleName).HasMaxLength(255);
             });
@@ -254,20 +254,30 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<SystemUser>(entity =>
             {
                 entity.HasIndex(e => e.UserUsername)
-                    .HasName("UQ__SystemUs__04C7FD8796B606F9")
+                    .HasName("UQ__SystemUs__04C7FD87E8D06919")
                     .IsUnique();
 
                 entity.Property(e => e.SystemUserId).HasDefaultValueSql("(newid())");
+
+                entity.Property(e => e.Fullname)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.UserDob)
+                    .HasColumnName("UserDOB")
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.UserGender).HasMaxLength(255);
 
                 entity.Property(e => e.UserPassword)
                     .IsRequired()
                     .HasMaxLength(255);
 
-                entity.Property(e => e.UserUsername)
+                entity.Property(e => e.UserPhone)
                     .IsRequired()
                     .HasMaxLength(255);
 
-                entity.Property(e => e.Username)
+                entity.Property(e => e.UserUsername)
                     .IsRequired()
                     .HasMaxLength(255);
             });
