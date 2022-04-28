@@ -30,6 +30,7 @@ namespace Edu_Mgmt_BE.Controllers
         private const string query_get_homework_files = "SELECT DISTINCT FileUpload.* FROM HomeWorkFileDetail, FileUpload WHERE HomeWorkFileDetail.HomeWorkId = @homeWorkId AND FileUpload.FileUploadId = HomeWorkFileDetail.FileUploadId";
         private const string query_get_homework_by_class = "SELECT DISTINCT HomeWork.* FROM HomeWorkClassDetail, HomeWork WHERE HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWorkClassDetail.ClassId = @classId";
         private const string query_get_class_by_homework = "SELECT DISTINCT Class.* FROM HomeWorkClassDetail, Class WHERE Class.ClassId = HomeWorkClassDetail.ClassId AND HomeWorkClassDetail.HomeWorkId = @homeWorkId";
+        private const string query_get_answer_by_homework = "select Student.*, Answer.AnswerId, ISNULL((SELECT Result.FinalScore FROM Result WHERE Result.AnswerId = Answer.AnswerId), N'_') As FinalScore from Answer, Student WHERE Answer.HomeWorkId = @homeWorkId and Answer.StudentId = Student.StudentId";
 
         public HomeWorkController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
         {
@@ -263,11 +264,50 @@ namespace Edu_Mgmt_BE.Controllers
             result.Add("files", filesRecords);
             result.Add("class", classRecords);
 
+            var role = Helper.getRole(HttpContext);
+            if (role == RoleType.TEACHER)
+            {
+                var studentList = _db.StudentAnswer
+                    .FromSqlRaw(query_get_answer_by_homework, param)
+                    .ToList();
+                result.Add("studentList", studentList);
+            }
+
             res.Data = result;
             res.Success = true;
             res.StatusCode = HttpStatusCode.OK;
             return res;
         }
+
+        /// <summary>
+        /// Danh sách học sinh nộp bài
+        /// </summary>
+        /// <param id="id"></param>
+        /// <returns></returns>
+        [HttpGet("detail-answer/{id}")]
+        public async Task<ServiceResponse> GetHomeWorkAnswer(Guid? homeWorkId)
+        {
+            ServiceResponse res = new ServiceResponse();
+            var homeWorkResult = await _db.HomeWork.FindAsync(homeWorkId);
+            if (homeWorkResult == null)
+            {
+                return ErrorHandler.NotFoundResponse(Message.HomeWorkNotFound);
+            }
+
+            var param = new SqlParameter("@homeWorkid", homeWorkResult.HomeWorkId);
+            var studentList = _db.StudentAnswer
+                    .FromSqlRaw(query_get_homework_files, param)
+                    .ToList();
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result.Add("studentList", studentList);
+
+            res.Data = result;
+            res.Success = true;
+            res.StatusCode = HttpStatusCode.OK;
+            return res;
+        }
+
 
         /// <summary>
         /// Sửa trạng thái bài tập
