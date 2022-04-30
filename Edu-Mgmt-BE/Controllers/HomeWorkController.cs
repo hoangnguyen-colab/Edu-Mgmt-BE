@@ -512,12 +512,15 @@ namespace Edu_Mgmt_BE.Controllers
 
                 Student student = studentList.Where(item => item.StudentPhone.Trim().Equals(req.StudentPhone.Trim())).FirstOrDefault();
 
-                //result.Add("student", student);
+                result.Add("student", student);
 
                 if (student != null)
                 {
                     var answer_check = await _db.Answer
-                        .Where(x => x.ClassId.Equals(req.ClassId) && x.StudentId.Equals(student.StudentId))
+                        .Where(x => x.ClassId.Equals(req.ClassId)
+                        && x.StudentId.Equals(student.StudentId)
+                        && x.HomeWorkId.Equals(hwResult.HomeWorkId)
+                        )
                         .FirstOrDefaultAsync();
 
                     if (answer_check != null)
@@ -550,6 +553,8 @@ namespace Edu_Mgmt_BE.Controllers
                         return ErrorHandler.BadRequestResponse(Message.HomeWorkOnlyAssignStudent, teacher);
                     }
                 }
+
+                result.Add("class", classResult);
 
                 res.Success = true;
                 res.Data = result;

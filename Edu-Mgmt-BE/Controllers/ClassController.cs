@@ -52,6 +52,80 @@ namespace Edu_Mgmt_BE.Controllers
             try
             {
                 var role = Helper.getRole(HttpContext);
+                List<Class> records = new List<Class>();
+
+                if (role == RoleType.TEACHER)
+                {
+                    var teacherId = Helper.getTeacherId(HttpContext);
+                    var paramId = new SqlParameter("@teacherId", teacherId);
+                    if (search != null && search.Trim() != "")
+                    {
+                        var paramSearch = new SqlParameter("@txtSeach", search);
+                        records = _db.Class
+                            .FromSqlRaw(TeacherClassQuerySearch, paramId, paramSearch)
+                            .OrderByDescending(x => x.ClassName)
+                            .Where(x => x.ClassStatus == classStatus)
+                            .ToList();
+                    }
+                    else
+                    {
+                        records = _db.Class
+                            .FromSqlRaw(TeacherClassQuery, paramId)
+                            .OrderByDescending(x => x.ClassName)
+                            .Where(x => x.ClassStatus == classStatus)
+                            .ToList();
+
+                    }
+                }
+                else if (role == RoleType.STUDENT)
+                {
+                    SystemUser systemUser = Helper.getStudentDetail(HttpContext);
+                    var paramName = new SqlParameter("@studentName", systemUser.Fullname);
+                    var paramDob = new SqlParameter("@studentDob", systemUser.UserDob);
+                    var paramPhone = new SqlParameter("@studentPhone", systemUser.UserPhone);
+
+                    records = await _db.Class
+                            .FromSqlRaw(StudentClassQuery, paramName, paramDob, paramPhone)
+                            .OrderByDescending(x => x.ClassName)
+                            .Where(x => x.ClassStatus == classStatus)
+                            .ToListAsync();
+
+                    var teacherList = await _db.Teacher.ToListAsync();
+                }
+
+                PagingData pagingData = new PagingData()
+                {
+                    TotalRecord = records.Count(),
+                    TotalPage = Convert.ToInt32(Math.Ceiling((decimal)records.Count() / (decimal)record.Value)),
+                    Data = records?.Skip((page.Value - 1) * record.Value)?.Take(record.Value).ToList(),
+                };
+                res.Success = true;
+                res.Data = pagingData;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+        
+        /// <summary>
+        /// Lấy danh sách lớp có số bài tập
+        /// </summary>
+        /// <returns></returns>
+        /// https://localhost:44335/api/class?page=2&record=10&search=21
+        [HttpGet("homework")]
+        public async Task<ServiceResponse> GetClassWithHomeWork(
+            [FromQuery] string search,
+            [FromQuery] int? page = 1,
+            [FromQuery] int? record = 10,
+            [FromQuery] int? classStatus = 1)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                var role = Helper.getRole(HttpContext);
                 List<ClassQuery> records = new List<ClassQuery>();
 
                 if (role == RoleType.TEACHER)
@@ -84,11 +158,11 @@ namespace Edu_Mgmt_BE.Controllers
                     var paramDob = new SqlParameter("@studentDob", systemUser.UserDob);
                     var paramPhone = new SqlParameter("@studentPhone", systemUser.UserPhone);
 
-                    records = _db.ClassQuery
+                    records = await _db.ClassQuery
                             .FromSqlRaw(StudentClassQuery, paramName, paramDob, paramPhone)
                             .OrderByDescending(x => x.ClassName)
                             .Where(x => x.ClassStatus == classStatus)
-                            .ToList();
+                            .ToListAsync();
                 }
 
                 PagingData pagingData = new PagingData()
@@ -107,7 +181,7 @@ namespace Edu_Mgmt_BE.Controllers
             }
             return res;
         }
-
+        
         /// <summary>
         /// Thêm lớp
         /// </summary>
