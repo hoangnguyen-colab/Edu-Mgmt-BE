@@ -25,6 +25,8 @@ namespace Edu_Mgmt_BE.Models
         public virtual DbSet<AnswerFileDetail> AnswerFileDetail { get; set; }
         public virtual DbSet<Class> Class { get; set; }
         public virtual DbSet<ClassDetail> ClassDetail { get; set; }
+        public virtual DbSet<ClassRequest> ClassRequest { get; set; }
+        public virtual DbSet<EditResultRequest> EditResultRequest { get; set; }
         public virtual DbSet<FileUpload> FileUpload { get; set; }
         public virtual DbSet<HomeWork> HomeWork { get; set; }
         public virtual DbSet<HomeWorkClassDetail> HomeWorkClassDetail { get; set; }
@@ -80,7 +82,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<AnswerFileDetail>(entity =>
             {
                 entity.HasKey(e => e.FileUploadDetailId)
-                    .HasName("PK__AnswerFi__F1AA951BE40DB43D");
+                    .HasName("PK__AnswerFi__F1AA951BF2EAA81F");
 
                 entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
 
@@ -119,6 +121,54 @@ namespace Edu_Mgmt_BE.Models
                     .WithMany(p => p.ClassDetail)
                     .HasForeignKey(d => d.ClassId)
                     .HasConstraintName("FK__ClassDeta__Class__300424B4");
+            });
+
+            modelBuilder.Entity<ClassRequest>(entity =>
+            {
+                entity.Property(e => e.ClassRequestId).HasDefaultValueSql("(newid())");
+
+                entity.Property(e => e.RequestContent).HasMaxLength(255);
+
+                entity.Property(e => e.RequestDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.RequestStatus).HasDefaultValueSql("((1))");
+
+                entity.HasOne(d => d.Class)
+                    .WithMany(p => p.ClassRequest)
+                    .HasForeignKey(d => d.ClassId)
+                    .HasConstraintName("FK__ClassRequ__Class__656C112C");
+
+                entity.HasOne(d => d.Student)
+                    .WithMany(p => p.ClassRequest)
+                    .HasForeignKey(d => d.StudentId)
+                    .HasConstraintName("FK__ClassRequ__Stude__6477ECF3");
+            });
+
+            modelBuilder.Entity<EditResultRequest>(entity =>
+            {
+                entity.Property(e => e.EditResultRequestId)
+                    .HasColumnName("EditResultRequestID")
+                    .HasDefaultValueSql("(newid())");
+
+                entity.Property(e => e.RequestContent).HasMaxLength(255);
+
+                entity.Property(e => e.RequestDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.RequestStatus).HasDefaultValueSql("((1))");
+
+                entity.HasOne(d => d.Result)
+                    .WithMany(p => p.EditResultRequest)
+                    .HasForeignKey(d => d.ResultId)
+                    .HasConstraintName("FK__EditResul__Resul__6C190EBB");
+
+                entity.HasOne(d => d.Student)
+                    .WithMany(p => p.EditResultRequest)
+                    .HasForeignKey(d => d.StudentId)
+                    .HasConstraintName("FK__EditResul__Stude__6B24EA82");
             });
 
             modelBuilder.Entity<FileUpload>(entity =>
@@ -162,7 +212,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<HomeWorkClassDetail>(entity =>
             {
                 entity.HasKey(e => e.HomeWorkClassDetail1)
-                    .HasName("PK__HomeWork__8AF9F51D3095738F");
+                    .HasName("PK__HomeWork__8AF9F51D1601AF18");
 
                 entity.Property(e => e.HomeWorkClassDetail1)
                     .HasColumnName("HomeWorkClassDetail")
@@ -182,7 +232,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<HomeWorkFileDetail>(entity =>
             {
                 entity.HasKey(e => e.FileUploadDetailId)
-                    .HasName("PK__HomeWork__F1AA951B6C1B857F");
+                    .HasName("PK__HomeWork__F1AA951BBA3CA191");
 
                 entity.Property(e => e.FileUploadDetailId).HasDefaultValueSql("(newid())");
 
@@ -246,7 +296,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<SystemRole>(entity =>
             {
                 entity.HasKey(e => e.RoleId)
-                    .HasName("PK__SystemRo__8AFACE1A556B8C01");
+                    .HasName("PK__SystemRo__8AFACE1A6CB6814B");
 
                 entity.Property(e => e.RoleName).HasMaxLength(255);
             });
@@ -254,7 +304,7 @@ namespace Edu_Mgmt_BE.Models
             modelBuilder.Entity<SystemUser>(entity =>
             {
                 entity.HasIndex(e => e.UserUsername)
-                    .HasName("UQ__SystemUs__04C7FD87E8D06919")
+                    .HasName("UQ__SystemUs__04C7FD877311612E")
                     .IsUnique();
 
                 entity.Property(e => e.SystemUserId).HasDefaultValueSql("(newid())");

@@ -14,6 +14,8 @@ namespace Edu_Mgmt_BE.Models
         public Student()
         {
             Answer = new HashSet<Answer>();
+            ClassRequest = new HashSet<ClassRequest>();
+            EditResultRequest = new HashSet<EditResultRequest>();
         }
 
         public Guid StudentId { get; set; }
@@ -25,5 +27,11 @@ namespace Edu_Mgmt_BE.Models
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual ICollection<Answer> Answer { get; set; }
+        [IgnoreDataMember]
+        [JsonIgnore]
+        public virtual ICollection<ClassRequest> ClassRequest { get; set; }
+        [IgnoreDataMember]
+        [JsonIgnore]
+        public virtual ICollection<EditResultRequest> EditResultRequest { get; set; }
     }
 }

@@ -308,7 +308,6 @@ namespace Edu_Mgmt_BE.Controllers
             return res;
         }
 
-
         /// <summary>
         /// Sửa trạng thái bài tập
         /// </summary>
@@ -397,7 +396,7 @@ namespace Edu_Mgmt_BE.Controllers
                 hm_result.HomeWorkType = homeworkReq.HomeWorkType.Trim();
                 hm_result.HomeWorkContent = homeworkReq.HomeWorkContent;
                 hm_result.DueDate = DateTimeUtils.UnixTimeStampToDateTime(homeworkReq.DueDate);
-                hm_result.HomeWorkStatus = homeworkReq.HomeWorkStatus;
+                hm_result.HomeWorkStatus = homeworkReq.HomeWorkStatus ?? hm_result.HomeWorkStatus;
                 hm_result.OnlyAssignStudent = homeworkReq.OnlyAssignStudent;
                 hm_result.RequiredLogin = homeworkReq.RequiredLogin;
                 result.Add("homeWork", hm_result);

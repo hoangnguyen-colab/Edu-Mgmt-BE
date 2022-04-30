@@ -14,6 +14,7 @@ namespace Edu_Mgmt_BE.Models
         public Class()
         {
             ClassDetail = new HashSet<ClassDetail>();
+            ClassRequest = new HashSet<ClassRequest>();
             HomeWorkClassDetail = new HashSet<HomeWorkClassDetail>();
         }
 
@@ -29,6 +30,9 @@ namespace Edu_Mgmt_BE.Models
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual ICollection<ClassDetail> ClassDetail { get; set; }
+        [IgnoreDataMember]
+        [JsonIgnore]
+        public virtual ICollection<ClassRequest> ClassRequest { get; set; }
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual ICollection<HomeWorkClassDetail> HomeWorkClassDetail { get; set; }

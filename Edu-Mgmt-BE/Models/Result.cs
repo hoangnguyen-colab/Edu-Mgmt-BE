@@ -11,6 +11,11 @@ namespace Edu_Mgmt_BE.Models
 {
     public partial class Result
     {
+        public Result()
+        {
+            EditResultRequest = new HashSet<EditResultRequest>();
+        }
+
         public Guid ResultId { get; set; }
         public string FinalScore { get; set; }
         public string ResultContent { get; set; }
@@ -25,5 +30,8 @@ namespace Edu_Mgmt_BE.Models
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual Teacher Teacher { get; set; }
+        [IgnoreDataMember]
+        [JsonIgnore]
+        public virtual ICollection<EditResultRequest> EditResultRequest { get; set; }
     }
 }

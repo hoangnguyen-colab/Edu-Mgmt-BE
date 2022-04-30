@@ -10,5 +10,7 @@ namespace Edu_Mgmt_BE.Constants
         Delete = 0, // Xóa
         Edit = 1, // Sửa
         Add = 2 //Thêm
+
+        //Scaffold-DbContext "Server=.\SQLExpress;Database=SchoolDB;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models
     }
 }
