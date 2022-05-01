@@ -104,6 +104,16 @@ namespace Edu_Mgmt_BE.Controllers
                 }
                 result.Add("class", class_result);
 
+                var hw_result = await _db.HomeWork.FindAsync(answerReq.HomeWorkId);
+                if (hw_result == null)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkNotFound);
+                }
+                if (hw_result?.DueDate < DateTime.Now)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeDueDate);
+                }
+
                 Student student = null;
                 if (answerReq.StudentId == null || answerReq.StudentId == Guid.Empty)
                 {
@@ -125,7 +135,10 @@ namespace Edu_Mgmt_BE.Controllers
                     }
 
                     var student_submit_check = await _db.Answer
-                        .Where(x => x.StudentId.Equals(student.StudentId) && x.ClassId.Equals(class_result.ClassId))
+                        .Where(x => x.StudentId.Equals(student.StudentId)
+                        && x.ClassId.Equals(class_result.ClassId)
+                        && x.HomeWorkId.Equals(hw_result.HomeWorkId)
+                        )
                         .FirstOrDefaultAsync();
 
                     if (student_submit_check != null)
@@ -146,7 +159,7 @@ namespace Edu_Mgmt_BE.Controllers
                     StudentId = student.StudentId,
                     HomeWorkId = answerReq.HomeWorkId,
                 };
-                _db.Answer.Add(answer);
+                //_db.Answer.Add(answer);
                 result.Add("answer", answer);
 
                 if (answerReq.FileList?.Length > 0)
@@ -170,13 +183,13 @@ namespace Edu_Mgmt_BE.Controllers
                             FileUploadId = fileItem.FileUploadId,
                         });
                     }
-                    _db.FileUpload.AddRange(fileList);
-                    _db.AnswerFileDetail.AddRange(fileListDetail);
+                    //_db.FileUpload.AddRange(fileList);
+                    //_db.AnswerFileDetail.AddRange(fileListDetail);
                     result.Add("fileList", fileList);
                     //result.Add("fileListDetail", fileListDetail);
                 }
 
-                await _db.SaveChangesAsync();
+                //await _db.SaveChangesAsync();
 
                 res.Success = true;
                 res.Data = result;
@@ -212,7 +225,7 @@ namespace Edu_Mgmt_BE.Controllers
             var student = await _db.Student.FindAsync(answer_result.StudentId);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result.Add("homeWork", answer_result);
+            result.Add("answer", answer_result);
             //result.Add("student", student);
             result.Add("files", filesRecords);
 
