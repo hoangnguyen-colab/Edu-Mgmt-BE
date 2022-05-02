@@ -58,6 +58,7 @@ namespace Edu_Mgmt_BE.Constants
         public const string ClassIdEmpty = "Mã lớp không thể trống.";
         public const string ClassIdExist = "Mã lớp đã tồn tại.";
         public const string ClassEmpty = "Lớp không thể trống.";
+        public const string ClassSubmit = "Hãy chọn ít nhất một lớp học để đăng ký.";
 
         //Xử lý message bài tập
         public const string HomeWorkNotFound = "Không tìm thấy bài tập này.";
@@ -83,7 +84,7 @@ namespace Edu_Mgmt_BE.Constants
         public const string TeacherNotFound = "Không tìm thấy giáo viên này.";
         public const string TeacherExist = "Giáo viên đã tồn tại.";
         public const string TeacherNameEmpty = "Tên giáo viên không thể trống.";
-        public const string TeacherPhoneEmpty = "Tên giáo viên không thể trống.";
+        public const string TeacherPhoneEmpty = "Số điện thoại giáo viên không thể trống.";
         public const string TeacherPhoneExist = "Số điện thoại đã tồn tại.";
         public const string TeacherIdEmpty = "Mã giáo viên không thể trống.";
         public const string TeacherIdBadRequest = "Mã giáo viên không hợp lệ.";

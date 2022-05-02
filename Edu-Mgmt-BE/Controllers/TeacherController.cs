@@ -212,7 +212,7 @@ namespace Edu_Mgmt_BE.Controllers
                 teacherResult.TeacherName = teacher.TeacherName.Trim();
                 teacherResult.TeacherEmail = teacher.TeacherEmail?.Trim();
 
-                var role = await _db.SystemRole.FindAsync(2);
+                var role = await _db.SystemRole.FindAsync(RoleType.TEACHER);
 
                 Dictionary<string, object> result = new Dictionary<string, object>();
                 result.Add("teacher", teacherResult);

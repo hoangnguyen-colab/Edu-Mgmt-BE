@@ -29,6 +29,7 @@ namespace Edu_Mgmt_BE.Controllers
         private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT COUNT(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) AS HomeWorkCount FROM Class, ClassDetail, Student WHERE ClassDetail.StudentId = Student.StudentId AND Class.ClassId = ClassDetail.ClassId AND Student.StudentName = @studentName AND Student.StudentDOB = @studentDob AND Student.StudentPhone = @studentPhone";
         private const string StudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId";
         private const string FindStudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId AND Student.StudentId = @studentId";
+        private const string GetClassRequestByTeacher = "SELECT cr.* FROM ClassRequest cr INNER JOIN Class c ON c.ClassId = cr.ClassId AND c.status = 1 INNER JOIN Teacher t ON t.TeacherId = c.TeacherId WHERE t.TeacherId = @teacherId";
 
         public ClassController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
         {
@@ -357,6 +358,29 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 res = ErrorHandler.ErrorCatchResponse(e);
             }
+            return res;
+        }
+
+        /// <summary>
+        /// Danh sách học sinh submit vào lớp học
+        /// </summary>
+        /// <param id="id"></param>
+        /// <returns></returns>
+        [HttpGet("class-request")]
+        public async Task<ServiceResponse> GetClassRequest()
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            var teacherId = Helper.getTeacherId(HttpContext);
+            List<ClassRequest> classRequest = _db.ClassRequest.FromSqlRaw(GetClassRequestByTeacher, teacherId).ToList();
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result.Add("classRequest", classRequest);
+            res.Data = result;
+            res.Success = true;
+            res.StatusCode = HttpStatusCode.OK;
             return res;
         }
 

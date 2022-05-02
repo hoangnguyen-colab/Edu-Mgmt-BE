@@ -87,7 +87,6 @@ namespace Edu_Mgmt_BE.Common
             return null;
         }
 
-
         public static bool CheckPermission(HttpContext httpContext, string role_code)
         {
             Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);

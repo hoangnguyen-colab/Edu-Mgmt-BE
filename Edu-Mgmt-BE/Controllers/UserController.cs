@@ -241,5 +241,40 @@ namespace Edu_Mgmt_BE.Controllers
                 return ErrorHandler.ErrorCatchResponse(e);
             }
         }
+
+        /// <summary>
+        /// Đổi mật khẩu
+        /// </summary>
+        /// <param SystemUser="SystemUser"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpPost("change-password")]
+        public async Task<ServiceResponse> ChangePassword(string oldPassword, string newPassword)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                var userId = Helper.getUserId(HttpContext);
+                string newPasswordMD5 = Helper.EncodeMD5(newPassword);
+                var accountResult = await _db.SystemUser
+                    .Where(_ => _.SystemUserId.Equals(userId) && _.UserPassword.Equals(oldPassword))
+                    .FirstOrDefaultAsync();
+                if (accountResult == null)
+                {
+                    return ErrorHandler.BadRequestResponse(Constants.Message.LoginIncorrect);
+                }
+                accountResult.UserPassword = newPasswordMD5;
+                _db.SystemUser.Add(accountResult);
+                await _db.SaveChangesAsync();
+
+                res.Data = null;
+                res.Success = false;
+                return res;
+            }
+            catch (Exception e)
+            {
+                return ErrorHandler.ErrorCatchResponse(e);
+            }
+        }
     }
 }

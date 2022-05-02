@@ -4,6 +4,7 @@ using Edu_Mgmt_BE.Common;
 using Edu_Mgmt_BE.Constants;
 using Edu_Mgmt_BE.Model.CustomModel;
 using Edu_Mgmt_BE.Models;
+using Edu_Mgmt_BE.Models.CustomModel.Class;
 using Edu_Mgmt_BE.Models.CustomModel.Student;
 using Edu_Mgmt_BE.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -35,6 +36,10 @@ namespace Edu_Mgmt_BE.Controllers
               "CHARINDEX(@txtSeach, TeacherEmail) or" +
               "CHARINDEX(@txtSeach, StudentGender) or" +
               "CHARINDEX(@txtSeach, StudentDOB)";
+
+        private const string sql_get_class_by_teacher = "select * from Class c WHERE c.TeacherId = @teacherId AND c.status = 1";
+
+        private const string sql_get_class_by_classIds = "select * from Class c WHERE c.ClassId IN @classIds AND c.status = 1";
 
         public StudentController(EduManagementContext context,
             IJwtAuthenticationManager jwtAuthenticationManager,
@@ -221,7 +226,7 @@ namespace Edu_Mgmt_BE.Controllers
         /// <param name="class"></param>
         /// <returns></returns>
         [HttpPut("edit/{id}")]
-        public async Task<ServiceResponse> EditTeacher(Guid id, Student student)
+        public async Task<ServiceResponse> EditStudent(Guid id, Student student)
         {
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
@@ -257,6 +262,68 @@ namespace Edu_Mgmt_BE.Controllers
                 res.StatusCode = HttpStatusCode.OK;
 
                 await _db.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Submit lớp học
+        /// </summary>
+        /// <param name="SubmitClassRequest"></param>
+        /// <returns></returns>
+        [HttpPost("submit/{id}")]
+        public async Task<ServiceResponse> SubmitClass(SubmitClassRequest req)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "student"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+
+            if (string.IsNullOrEmpty(req.teacherPhone))
+            {
+                return ErrorHandler.BadRequestResponse(Message.TeacherPhoneEmpty);
+            }
+            try
+            {
+                List<Class> classList = new();
+                classList = _db.Class.FromSqlRaw(sql_get_class_by_classIds, req.classIds).ToList();
+                var studentResult = await _db.Student.FindAsync(req.studentId);
+                if (studentResult == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.StudentNotFound);
+                }
+                if (classList == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.ClassSubmit);
+                }
+                if (classList != null)
+                {
+                    foreach(var item in classList)
+                    {
+                        ClassRequest cr = new ClassRequest();
+                        cr.ClassRequestId = Guid.NewGuid();
+                        cr.ClassId = item.ClassId;
+                        cr.StudentId = req.studentId;
+                        cr.RequestDate = new DateTime();
+                        cr.RequestStatus = ClassRequestStatus.Pending;
+                        cr.RequestContent = req.content.Trim();
+                        _db.ClassRequest.Add(cr);
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                result.Add("student", studentResult);
+                res.Message = "Đăng ký vào lớp học thành công!";
+                res.Success = true;
+                res.Data = null;
+                res.StatusCode = HttpStatusCode.OK;
             }
             catch (Exception e)
             {
