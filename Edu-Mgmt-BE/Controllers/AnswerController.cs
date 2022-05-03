@@ -40,8 +40,9 @@ namespace Edu_Mgmt_BE.Controllers
         [HttpGet("by-homework/{HomeWorkId}")]
         public async Task<ServiceResponse> GetAnswerByHomeWork(
             Guid HomeWorkId,
+            [FromQuery] Guid? classId,
             [FromQuery] int? page = 1,
-            [FromQuery] int? record = 10)
+            [FromQuery] int? record = 50)
         {
             ServiceResponse res = new ServiceResponse();
             try
@@ -58,11 +59,16 @@ namespace Edu_Mgmt_BE.Controllers
                     .OrderByDescending(x => x.CreatedDate)
                     .ToListAsync();
 
+                if (classId != null && classId != Guid.Empty)
+                {
+                    records = records.Where(x => x.ClassId.Equals(classId)).ToList();
+                }
+
                 foreach (var item in records)
                 {
-                    var student = await _db.Student.FindAsync(item.StudentId);
-                    var classes = await _db.Class.FindAsync(item.ClassId);
-                    //var results = await _db.Result.Where(x => x.AnswerId.Equals(item.AnswerId)).FirstOrDefaultAsync();
+                    var student = await _db.Student.Where(x => x.StudentId.Equals(item.StudentId)).FirstOrDefaultAsync();
+                    var classes = await _db.Class.Where(x => x.ClassId.Equals(item.ClassId)).FirstOrDefaultAsync();
+                    var results = await _db.Result.Where(x => x.AnswerId.Equals(item.AnswerId)).FirstOrDefaultAsync();
                 }
 
                 res.Success = true;

@@ -34,8 +34,8 @@ namespace Edu_Mgmt_BE.Models
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual ICollection<AnswerFileDetail> AnswerFileDetail { get; set; }
-        [IgnoreDataMember]
-        [JsonIgnore]
+        //[IgnoreDataMember]
+        //[JsonIgnore]
         public virtual ICollection<Result> Result { get; set; }
     }
 }
