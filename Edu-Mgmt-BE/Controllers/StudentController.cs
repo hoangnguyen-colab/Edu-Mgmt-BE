@@ -283,11 +283,6 @@ namespace Edu_Mgmt_BE.Controllers
             {
                 return ErrorHandler.UnauthorizeCatchResponse();
             }
-
-            if (string.IsNullOrEmpty(req.teacherPhone))
-            {
-                return ErrorHandler.BadRequestResponse(Message.TeacherPhoneEmpty);
-            }
             try
             {
                 List<Class> classList = new();
