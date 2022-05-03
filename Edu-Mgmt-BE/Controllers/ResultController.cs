@@ -35,7 +35,7 @@ namespace Edu_Mgmt_BE.Controllers
         /// <param name="answerReq"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ServiceResponse> SubmitHomeWork(ResultSubmit req)
+        public async Task<ServiceResponse> SubmitResult(ResultSubmit req)
         {
             ServiceResponse res = new ServiceResponse();
             if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
@@ -99,5 +99,52 @@ namespace Edu_Mgmt_BE.Controllers
             }
             return res;
         }
+
+        /// <summary>
+        /// Sửa điểm bài nộp
+        /// </summary>
+        /// <param name="answerReq"></param>
+        /// <returns></returns>
+        [HttpPut("edit/{id}")]
+        public async Task<ServiceResponse> EditResult(Guid id, ResultSubmit req)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                Dictionary<string, object> result = new Dictionary<string, object>();
+
+                var result_check = await _db.Result.FindAsync(id);
+                if (result_check == null)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.ResultNotFound);
+                }
+                double score;
+                if (!double.TryParse(req.FinalScore, out score))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.ResultScoreBadReq);
+                }
+
+                result_check.FinalScore = req.FinalScore;
+                result_check.ModifyDate = DateTime.Now;
+                result_check.ResultContent = req.ResultContent;
+
+                //await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result_check;
+                res.StatusCode = HttpStatusCode.OK;
+
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
     }
 }

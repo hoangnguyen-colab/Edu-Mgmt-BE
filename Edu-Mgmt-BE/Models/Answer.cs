@@ -29,6 +29,7 @@ namespace Edu_Mgmt_BE.Models
         [IgnoreDataMember]
         [JsonIgnore]
         public virtual HomeWork HomeWork { get; set; }
+        public virtual Class Class { get; set; }
         public virtual Student Student { get; set; }
         [IgnoreDataMember]
         [JsonIgnore]

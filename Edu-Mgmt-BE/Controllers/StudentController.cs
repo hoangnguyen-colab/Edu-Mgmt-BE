@@ -290,7 +290,7 @@ namespace Edu_Mgmt_BE.Controllers
             }
             try
             {
-                List<Class> classList = new();
+                List<Class> classList = new List<Class>();
                 classList = _db.Class.FromSqlRaw(sql_get_class_by_classIds, req.classIds).ToList();
                 var studentResult = await _db.Student.FindAsync(req.studentId);
                 if (studentResult == null)

@@ -61,6 +61,8 @@ namespace Edu_Mgmt_BE.Controllers
                 foreach (var item in records)
                 {
                     var student = await _db.Student.FindAsync(item.StudentId);
+                    var classes = await _db.Class.FindAsync(item.ClassId);
+                    //var results = await _db.Result.Where(x => x.AnswerId.Equals(item.AnswerId)).FirstOrDefaultAsync();
                 }
 
                 res.Success = true;
@@ -159,7 +161,7 @@ namespace Edu_Mgmt_BE.Controllers
                     StudentId = student.StudentId,
                     HomeWorkId = answerReq.HomeWorkId,
                 };
-                //_db.Answer.Add(answer);
+                _db.Answer.Add(answer);
                 result.Add("answer", answer);
 
                 if (answerReq.FileList?.Length > 0)
@@ -189,7 +191,7 @@ namespace Edu_Mgmt_BE.Controllers
                     //result.Add("fileListDetail", fileListDetail);
                 }
 
-                //await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
                 res.Success = true;
                 res.Data = result;
@@ -226,8 +228,13 @@ namespace Edu_Mgmt_BE.Controllers
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             result.Add("answer", answer_result);
-            //result.Add("student", student);
             result.Add("files", filesRecords);
+
+            var result_check = await _db.Result.Where(x => x.AnswerId.Equals(answer_result.AnswerId)).FirstOrDefaultAsync();
+            if (result_check != null)
+            {
+                result.Add("result", result_check);
+            }
 
             res.Data = result;
             res.Success = true;

@@ -23,9 +23,9 @@ namespace Edu_Mgmt_BE.Common
 
         public static int getRole(HttpContext httpContext)
         {
-            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
             try
             {
+                Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
                 if (account_login != null && account_login.ContainsKey("account"))
                 {
                     JObject jAccount = account_login["account"] as JObject;
@@ -47,67 +47,96 @@ namespace Edu_Mgmt_BE.Common
 
         public static Guid? getUserId(HttpContext httpContext)
         {
-            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
-            if (account_login != null && account_login.ContainsKey("account"))
+            try
             {
-                JObject jAccount = account_login["account"] as JObject;
-                SystemUser account = jAccount.ToObject<SystemUser>();
 
-                return account.SystemUserId;
+                Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+                if (account_login != null && account_login.ContainsKey("account"))
+                {
+                    JObject jAccount = account_login["account"] as JObject;
+                    SystemUser account = jAccount.ToObject<SystemUser>();
+
+                    return account.SystemUserId;
+                }
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public static Guid? getTeacherId(HttpContext httpContext)
         {
-            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
-            if (account_login != null && account_login.ContainsKey("account"))
+            try
             {
-                JObject jAccount = account_login["account"] as JObject;
-                SystemUser account = jAccount.ToObject<SystemUser>();
+                Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+                if (account_login != null && account_login.ContainsKey("account"))
+                {
+                    JObject jAccount = account_login["account"] as JObject;
+                    SystemUser account = jAccount.ToObject<SystemUser>();
 
-                var teacher = _db.Teacher
-                    .FromSqlRaw(sql_get_teacher_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
+                    var teacher = _db.Teacher
+                        .FromSqlRaw(sql_get_teacher_id, new SqlParameter("@SystemUserId", account.SystemUserId)).FirstOrDefault();
 
-                return teacher?.TeacherId;
+                    return teacher?.TeacherId;
+                }
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public static SystemUser getStudentDetail(HttpContext httpContext)
         {
-            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
-            if (account_login != null && account_login.ContainsKey("account"))
+            try
             {
-                JObject jAccount = account_login["account"] as JObject;
-                SystemUser account = jAccount.ToObject<SystemUser>();
+                Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+                if (account_login != null && account_login.ContainsKey("account"))
+                {
+                    JObject jAccount = account_login["account"] as JObject;
+                    SystemUser account = jAccount.ToObject<SystemUser>();
 
-                return account;
+                    return account;
+                }
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public static bool CheckPermission(HttpContext httpContext, string role_code)
         {
-            Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
-            if (account_login != null && account_login.ContainsKey("account"))
+            try
             {
-                JObject jAccount = account_login["account"] as JObject;
-                SystemUser account = jAccount.ToObject<SystemUser>();
-
-                var roles = _db.SystemRole
-                    .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
-                    .ToList();
-
-                for (int i = 0; i < roles.Count(); i++)
+                Dictionary<string, object> account_login = JsonConvert.DeserializeObject<Dictionary<string, object>>(httpContext.User.Identity.Name);
+                if (account_login != null && account_login.ContainsKey("account"))
                 {
-                    if (roles[i].RoleName == role_code)
+                    JObject jAccount = account_login["account"] as JObject;
+                    SystemUser account = jAccount.ToObject<SystemUser>();
+
+                    var roles = _db.SystemRole
+                        .FromSqlRaw(sql_get_role, new SqlParameter("@SystemUserId", account.SystemUserId))
+                        .ToList();
+
+                    for (int i = 0; i < roles.Count(); i++)
                     {
-                        return true;
+                        if (roles[i].RoleName == role_code)
+                        {
+                            return true;
+                        }
                     }
                 }
+                return false;
             }
-            return false;
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public static string EncodeMD5(string str)

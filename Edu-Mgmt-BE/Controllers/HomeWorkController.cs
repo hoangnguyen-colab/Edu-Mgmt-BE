@@ -264,14 +264,14 @@ namespace Edu_Mgmt_BE.Controllers
             result.Add("files", filesRecords);
             result.Add("class", classRecords);
 
-            var role = Helper.getRole(HttpContext);
-            if (role == RoleType.TEACHER)
-            {
-                var studentList = _db.StudentAnswer
-                    .FromSqlRaw(query_get_answer_by_homework, param)
-                    .ToList();
-                result.Add("studentList", studentList);
-            }
+            //var role = Helper.getRole(HttpContext);
+            //if (role == RoleType.TEACHER)
+            //{
+            //    var studentList = _db.StudentAnswer
+            //        .FromSqlRaw(query_get_answer_by_homework, param)
+            //        .ToList();
+            //    result.Add("studentList", studentList);
+            //}
 
             res.Data = result;
             res.Success = true;
