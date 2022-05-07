@@ -453,9 +453,7 @@ namespace Edu_Mgmt_BE.Controllers
 
                 foreach (var student in request.studentList)
                 {
-                    var student_result = _db.Student.Where(item =>
-                    item.StudentName.ToLower().Equals(student.StudentName.Trim().ToLower()) &&
-                    item.StudentDob.Equals(student.StudentDob.Trim()) &&
+                    var student_result = _db.Student.Where(item => 
                     item.StudentPhone.Equals(student.StudentPhone.Trim())).FirstOrDefault();
 
                     if (student_result == null)
@@ -479,7 +477,7 @@ namespace Edu_Mgmt_BE.Controllers
 
                         if (student_check_exist != null)
                         {
-                            return ErrorHandler.NotFoundResponse(Message.StudentExist + " Tên: " + student_result.StudentName);
+                            return ErrorHandler.NotFoundResponse(Message.StudentExist + " Sđt: " + student_result.StudentPhone);
                         }
                     }
 

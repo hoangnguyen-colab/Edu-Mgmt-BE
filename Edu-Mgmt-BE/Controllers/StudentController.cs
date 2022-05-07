@@ -128,6 +128,33 @@ namespace Edu_Mgmt_BE.Controllers
         }
 
         /// <summary>
+        /// Lấy chi tiết thông tin học sinh theo sdt
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("detail-phone/{phone}")]
+        public async Task<ServiceResponse> GetStudent(string phone)
+        {
+            ServiceResponse res = new ServiceResponse();
+            var student = await _db.Student
+                .Where(x => x.StudentPhone.Equals(phone.Trim()))
+                .FirstOrDefaultAsync();
+
+            if (student == null)
+            {
+                return ErrorHandler.NotFoundResponse(Message.StudentNotFound);
+            }
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result.Add("student", student);
+
+            res.Data = result;
+            res.Success = true;
+            res.StatusCode = HttpStatusCode.OK;
+            return res;
+        }
+
+
+        /// <summary>
         /// Thêm học sinh
         /// </summary>
         /// <param name="student"></param>
@@ -298,7 +325,7 @@ namespace Edu_Mgmt_BE.Controllers
                 }
                 if (classList != null)
                 {
-                    foreach(var item in classList)
+                    foreach (var item in classList)
                     {
                         ClassRequest cr = new ClassRequest();
                         cr.ClassRequestId = Guid.NewGuid();
