@@ -191,8 +191,8 @@ namespace Edu_Mgmt_BE.Controllers
                             FileUploadId = fileItem.FileUploadId,
                         });
                     }
-                    //_db.FileUpload.AddRange(fileList);
-                    //_db.AnswerFileDetail.AddRange(fileListDetail);
+                    _db.FileUpload.AddRange(fileList);
+                    _db.AnswerFileDetail.AddRange(fileListDetail);
                     result.Add("fileList", fileList);
                     //result.Add("fileListDetail", fileListDetail);
                 }

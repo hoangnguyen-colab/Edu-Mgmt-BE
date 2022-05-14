@@ -31,6 +31,7 @@ namespace Edu_Mgmt_BE.Controllers
         private const string query_get_homework_by_class = "SELECT DISTINCT HomeWork.* FROM HomeWorkClassDetail, HomeWork WHERE HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWorkClassDetail.ClassId = @classId";
         private const string query_get_class_by_homework = "SELECT DISTINCT Class.* FROM HomeWorkClassDetail, Class WHERE Class.ClassId = HomeWorkClassDetail.ClassId AND HomeWorkClassDetail.HomeWorkId = @homeWorkId";
         private const string query_get_answer_by_homework = "select Student.*, Answer.AnswerId, ISNULL((SELECT Result.FinalScore FROM Result WHERE Result.AnswerId = Answer.AnswerId), N'_') As FinalScore from Answer, Student WHERE Answer.HomeWorkId = @homeWorkId and Answer.StudentId = Student.StudentId";
+        private const string query_get_answer_files = "SELECT DISTINCT FileUpload.* FROM AnswerFileDetail, FileUpload WHERE AnswerFileDetail.AnswerId = @answerId AND FileUpload.FileUploadId = AnswerFileDetail.FileUploadId";
 
         public HomeWorkController(EduManagementContext context, IJwtAuthenticationManager jwtAuthenticationManager)
         {
@@ -164,7 +165,7 @@ namespace Edu_Mgmt_BE.Controllers
                     HomeWorkName = homeworkReq.HomeWorkName.Trim(),
                     HomeWorkType = homeworkReq.HomeWorkType.Trim(),
                     HomeWorkContent = homeworkReq.HomeWorkContent,
-                    DueDate = DateTimeUtils.UnixTimeStampToDateTime(homeworkReq.DueDate),
+                    DueDate = homeworkReq.DueDate != 0 ? DateTimeUtils.UnixTimeStampToDateTime(homeworkReq.DueDate) : (DateTime?) null,
                     HomeWorkStatus = HomeWorkStatus.Active,
                     OnlyAssignStudent = homeworkReq.OnlyAssignStudent,
                     RequiredLogin = homeworkReq.RequiredLogin,
@@ -395,7 +396,7 @@ namespace Edu_Mgmt_BE.Controllers
                 hm_result.HomeWorkName = homeworkReq.HomeWorkName.Trim();
                 hm_result.HomeWorkType = homeworkReq.HomeWorkType.Trim();
                 hm_result.HomeWorkContent = homeworkReq.HomeWorkContent;
-                hm_result.DueDate = DateTimeUtils.UnixTimeStampToDateTime(homeworkReq.DueDate);
+                hm_result.DueDate = homeworkReq.DueDate != 0 ? DateTimeUtils.UnixTimeStampToDateTime(homeworkReq.DueDate) : (DateTime?)null;
                 hm_result.HomeWorkStatus = homeworkReq.HomeWorkStatus ?? hm_result.HomeWorkStatus;
                 hm_result.OnlyAssignStudent = homeworkReq.OnlyAssignStudent;
                 hm_result.RequiredLogin = homeworkReq.RequiredLogin;
@@ -513,6 +514,7 @@ namespace Edu_Mgmt_BE.Controllers
                 Student student = studentList.Where(item => item.StudentPhone.Trim().Equals(req.StudentPhone.Trim())).FirstOrDefault();
 
                 result.Add("student", student);
+                result.Add("class", classResult);
 
                 if (student != null)
                 {
@@ -532,13 +534,19 @@ namespace Edu_Mgmt_BE.Controllers
                         if (result_check != null)
                         {
                             result.Add("result", result_check);
-                            res.Success = true;
-                            res.Data = result;
-                            res.StatusCode = HttpStatusCode.OK;
-                            return res;
+                            //res.Success = true;
+                            //res.Data = result;
+                            //res.StatusCode = HttpStatusCode.OK;
+                            //return res;
                         }
 
-                        result.Add("anwer", answer_check);
+                        result.Add("answer", answer_check);
+                        var param = new SqlParameter("@answerId", answer_check.AnswerId);
+                        var filesRecords = _db.FileUpload
+                            .FromSqlRaw(query_get_answer_files, param)
+                            .OrderByDescending(x => x.FileUploadName)
+                            .ToList();
+                        result.Add("files", filesRecords);
                         res.Success = true;
                         res.Data = result;
                         res.StatusCode = HttpStatusCode.OK;
@@ -554,7 +562,6 @@ namespace Edu_Mgmt_BE.Controllers
                     }
                 }
 
-                result.Add("class", classResult);
 
                 res.Success = true;
                 res.Data = result;

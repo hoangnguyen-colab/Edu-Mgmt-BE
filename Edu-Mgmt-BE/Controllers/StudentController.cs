@@ -31,11 +31,7 @@ namespace Edu_Mgmt_BE.Controllers
         private static IWebHostEnvironment _environment;
         private readonly IJwtAuthenticationManager _jwtAuthenticationManager;
         private readonly EduManagementContext _db;
-        private const string sql_get_student = "select * from Student where " +
-              "CHARINDEX(@txtSeach, StudentName) > 0 or " +
-              "CHARINDEX(@txtSeach, TeacherEmail) or" +
-              "CHARINDEX(@txtSeach, StudentGender) or" +
-              "CHARINDEX(@txtSeach, StudentDOB)";
+        private const string sql_get_student = "select * from Student where CHARINDEX(@txtSeach, StudentName) > 0 or CHARINDEX(@txtSeach, StudentDob) > 0 or CHARINDEX(@txtSeach, StudentPhone) > 0";
 
         private const string sql_get_class_by_teacher = "select * from Class c WHERE c.TeacherId = @teacherId AND c.status = 1";
 
@@ -153,7 +149,6 @@ namespace Edu_Mgmt_BE.Controllers
             return res;
         }
 
-
         /// <summary>
         /// Thêm học sinh
         /// </summary>
@@ -208,6 +203,65 @@ namespace Edu_Mgmt_BE.Controllers
             catch (Exception e)
             {
                 res = ErrorHandler.ErrorCatchResponse(e, Message.FileServerFail);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Thêm học sinh vào lớp
+        /// </summary>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        [HttpPost("add-student")]
+        public async Task<ServiceResponse> AddStudentToClass(AddStudentToClassRequest request)
+        {
+            ServiceResponse res = new ServiceResponse();
+            if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
+            {
+                return ErrorHandler.UnauthorizeCatchResponse();
+            }
+            try
+            {
+                Dictionary<string, object> result = new Dictionary<string, object>();
+
+                List<Student> studentDataList = new List<Student>();
+
+                foreach (var student in request.studentList)
+                {
+                    var student_result = _db.Student.Where(item =>
+                    item.StudentPhone.Equals(student.StudentPhone.Trim())).FirstOrDefault();
+
+                    if (student_result == null)
+                    {
+                        student_result = new Student()
+                        {
+                            StudentId = Guid.NewGuid(),
+                            StudentName = student.StudentName.Trim(),
+                            StudentDob = student.StudentDob.Trim(),
+                            StudentGender = student.StudentGender.Trim(),
+                            StudentPhone = student.StudentPhone.Trim(),
+                        };
+
+                        studentDataList.Add(student_result);
+                    }
+                    else
+                    {
+                        return ErrorHandler.NotFoundResponse(Message.StudentExist + " Sđt: " + student_result.StudentPhone);
+                    }
+
+                }
+                result.Add("studentDataList", studentDataList);
+                _db.Student.AddRange(studentDataList);
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
             }
             return res;
         }
