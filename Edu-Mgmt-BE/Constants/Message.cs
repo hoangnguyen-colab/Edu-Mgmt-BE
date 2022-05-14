@@ -74,6 +74,9 @@ namespace Edu_Mgmt_BE.Constants
         public const string AnswerNotFound = "Không tìm thấy bài nộp này.";
         public const string AnswerAlreadySubmit = "Học sinh đã nộp bài. Không thể nộp lại";
 
+        //Xử lý message phúc khảo
+        public const string ReviewExisted = "Bài làm này đã gửi phúc khảo.";
+
         //Xử lý message đáp án
         public const string ResultNotFound = "Không tìm thấy bài nộp này.";
         public const string ResultSubmit = "Học sinh đã nộp bài.";

@@ -146,5 +146,69 @@ namespace Edu_Mgmt_BE.Controllers
             return res;
         }
 
+        /// <summary>
+        /// Phúc khảo (1 lượt phúc khảo / 1 bài làm)
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<ServiceResponse> ReviewResult(ResultReviewRequest req)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                Dictionary<string, object> data = new Dictionary<string, object>();
+
+                Guid? studentId = Helper.getUserId(HttpContext);
+
+                if (req.ResultId == Guid.Empty)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.BadRequest);
+                }
+
+                Result result = await _db.Result.FindAsync(req.ResultId);
+                Student student = await _db.Student.FindAsync(studentId);
+                if (result == null)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.ResultNotFound);
+                }
+                if (student == null)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.StudentNotFound);
+                }
+
+                if (student != null && result != null)
+                {
+                    EditResultRequest reviewResult = await _db.EditResultRequest.Where(_ => _.StudentId == student.StudentId && _.ResultId == req.ResultId).FirstOrDefaultAsync();
+                    if (reviewResult != null)
+                    {
+                        return ErrorHandler.BadRequestResponse(Message.ReviewExisted);
+                    } else
+                    {
+                        reviewResult = new EditResultRequest();
+                        reviewResult.EditResultRequestId = new Guid();
+                        reviewResult.RequestContent = req.ReviewContent.Trim();
+                        reviewResult.RequestDate = new DateTime();
+                        reviewResult.StudentId = student.StudentId;
+                        reviewResult.ResultId = result.ResultId;
+                        reviewResult.RequestStatus = ReviewStatus.Pending;
+                    }
+                    _db.EditResultRequest.Add(reviewResult);
+                }
+                
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
     }
 }
