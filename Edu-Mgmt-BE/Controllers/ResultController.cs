@@ -151,7 +151,7 @@ namespace Edu_Mgmt_BE.Controllers
         /// </summary>
         /// <param name=""></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost("edit-request")]
         public async Task<ServiceResponse> ReviewResult(ResultReviewRequest req)
         {
             ServiceResponse res = new ServiceResponse();

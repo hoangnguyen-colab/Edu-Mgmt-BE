@@ -276,5 +276,82 @@ namespace Edu_Mgmt_BE.Controllers
                 return ErrorHandler.ErrorCatchResponse(e);
             }
         }
+
+        /// <summary>
+        /// Edit profile
+        /// </summary>
+        /// <param SystemUser="SystemUser"></param>
+        /// <returns></returns>
+        [HttpPost("edit-profile")]
+        public async Task<ServiceResponse> EditProfile(UserSignUp userSignUp)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                var userId = Helper.getUserId(HttpContext);
+                var role = Helper.getRole(HttpContext);
+                var account = await _db.SystemUser.FindAsync(userId);
+                var account_detail = await _db.UserDetail
+                    .Where(x => x.SystemUserId.Equals(account.SystemUserId))
+                    .FirstOrDefaultAsync();
+                if (account == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.AccountNotFound);
+                }
+                DateTime date;
+                if (!DateTime.TryParseExact(userSignUp.UserDOB?.Trim(), "dd'/'MM'/'yyyy",
+                                           CultureInfo.InvariantCulture,
+                                           DateTimeStyles.None,
+                                           out date))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.InvalidDOB);
+                }
+
+                string phoneNumber = userSignUp.UserPhone?.Trim();
+                if (!StringUtils.IsPhoneNumber(phoneNumber))
+                {
+                    return ErrorHandler.BadRequestResponse(Message.InvalidPhone);
+                }
+                if (phoneNumber.Substring(0, 3) == "+84")
+                {
+                    userSignUp.UserPhone = userSignUp.UserPhone.Trim().Replace("+84", "0");
+                }
+
+                account.Fullname = userSignUp.UserName?.Trim();
+                account.UserDob = userSignUp.UserDOB?.Trim();
+                account.UserGender = userSignUp.UserGender?.Trim();
+                account.UserPhone = userSignUp.UserPhone?.Trim();
+                account.UserUsername = userSignUp.UserPhone?.Trim();
+
+                result.Add("account", account);
+                if (role == RoleType.TEACHER)
+                {
+                    var teacher = await _db.Teacher.FindAsync(account_detail.UserId);
+
+                    if  (teacher != null)
+                    {
+                        teacher.TeacherName = userSignUp.UserName?.Trim();
+                        teacher.TeacherPhone = userSignUp.UserPhone?.Trim();
+                        teacher.TeacherEmail = userSignUp.UserEmail?.Trim();
+                        teacher.TeacherGender = userSignUp.UserGender?.Trim();
+                        teacher.TeacherDob = userSignUp.UserDOB?.Trim();
+                    }
+
+                    result.Add("teacher", teacher);
+                }
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+                return res;
+            }
+            catch (Exception e)
+            {
+                return ErrorHandler.ErrorCatchResponse(e);
+            }
+        }
     }
 }
