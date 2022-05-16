@@ -7,7 +7,7 @@ namespace Edu_Mgmt_BE.Models.CustomModel.Class
 {
     public class AddStudentToClassRequest
     {
-        public Guid classId { get; set; }
+        public Guid? classId { get; set; }
         public Models.Student[] studentList { get; set; }
     }
 }

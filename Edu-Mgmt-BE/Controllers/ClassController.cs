@@ -485,7 +485,7 @@ namespace Edu_Mgmt_BE.Controllers
                     classDetail.Add(new ClassDetail()
                     {
                         ClassDetailId = Guid.NewGuid(),
-                        ClassId = request.classId,
+                        ClassId = (Guid)request.classId,
                         StudentId = student_result.StudentId,
                     });
                 }
