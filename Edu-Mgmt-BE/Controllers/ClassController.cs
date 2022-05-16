@@ -262,6 +262,8 @@ namespace Edu_Mgmt_BE.Controllers
                         .OrderByDescending(x => x.StudentName)
                         .ToList();
 
+            var teacher = await _db.Teacher.FindAsync(classResult.TeacherId);
+
             result.Add("class", classResult);
             result.Add("students", studentList);
 
