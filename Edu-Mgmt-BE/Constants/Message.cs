@@ -68,6 +68,7 @@ namespace Edu_Mgmt_BE.Constants
         public const string HomeWorkEmpty = "Bài tập không thể trống.";
         public const string HomeWorkOnlyAssignStudent = "Chỉ học sinh trong danh sách làm bài tập này. Vui lòng liên hệ giáo viên hướng dẫn";
         public const string HomeDueDate = "Bài tập đã quá hạn nộp.";
+        public const string HomeWorkStatusExpired = "Bài tập đã kết thúc.";
 
         //Xử lý message bài nộp
         public const string AnswerEmpty = "Bài nộp của học sinh trống.";

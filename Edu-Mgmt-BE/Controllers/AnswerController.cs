@@ -97,10 +97,6 @@ namespace Edu_Mgmt_BE.Controllers
         public async Task<ServiceResponse> SubmitHomeWork(HomeWorkAnswer answerReq)
         {
             ServiceResponse res = new ServiceResponse();
-            //if (!Helper.CheckPermission(HttpContext, "admin") && !Helper.CheckPermission(HttpContext, "teacher"))
-            //{
-            //    return ErrorHandler.UnauthorizeCatchResponse();
-            //}
             try
             {
                 Dictionary<string, object> result = new Dictionary<string, object>();
@@ -120,6 +116,10 @@ namespace Edu_Mgmt_BE.Controllers
                 if (hw_result?.DueDate < DateTime.Now)
                 {
                     return ErrorHandler.BadRequestResponse(Message.HomeDueDate);
+                }
+                if (hw_result?.HomeWorkStatus != HomeWorkStatus.Active)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkStatusExpired);
                 }
 
                 Student student = null;
@@ -195,6 +195,93 @@ namespace Edu_Mgmt_BE.Controllers
                     _db.AnswerFileDetail.AddRange(fileListDetail);
                     result.Add("fileList", fileList);
                     //result.Add("fileListDetail", fileListDetail);
+                }
+
+                await _db.SaveChangesAsync();
+
+                res.Success = true;
+                res.Data = result;
+                res.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception e)
+            {
+                res = ErrorHandler.ErrorCatchResponse(e);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Sửa bài nộp
+        /// </summary>
+        /// <param name="homeworkReq"></param>
+        /// <returns></returns>
+        [HttpPut("edit/{id}")]
+        public async Task<ServiceResponse> EditHomeWork(Guid? id, HomeWorkAnswer answerReq)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                if (id == null || id == Guid.Empty)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkEmpty);
+                }
+                var answer_result = await _db.Answer.FindAsync(id);
+                if (answer_result == null)
+                {
+                    return ErrorHandler.NotFoundResponse(Message.AnswerNotFound);
+                }
+
+                var hw_result = await _db.HomeWork.FindAsync(answer_result.HomeWorkId);
+                if (hw_result == null)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkNotFound);
+                }
+                if (hw_result?.DueDate < DateTime.Now)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeDueDate);
+                }
+                if (hw_result?.HomeWorkStatus != HomeWorkStatus.Active)
+                {
+                    return ErrorHandler.BadRequestResponse(Message.HomeWorkStatusExpired);
+                }
+                result.Add("homeWork", hw_result);
+
+                answer_result.SubmitTime = DateTime.Now;
+                answer_result.ModifyDate = DateTime.Now;
+                answer_result.AnswerContent = answerReq.AnswerContent;
+                result.Add("answer", answer_result);
+
+                //remove old files
+                var oldFiles = await _db.AnswerFileDetail.Where(x => x.AnswerId.Equals(id)).ToListAsync();
+                _db.AnswerFileDetail.RemoveRange(oldFiles);
+
+                if (answerReq.FileList?.Length > 0)
+                {
+                    List<FileUpload> fileList = new List<FileUpload>();
+                    List<HomeWorkFileDetail> fileListDetail = new List<HomeWorkFileDetail>();
+                    foreach (var file in answerReq.FileList)
+                    {
+                        FileUpload fileItem = new FileUpload()
+                        {
+                            FileUploadId = Guid.NewGuid(),
+                            FileUploadName = file.FileUploadName,
+                            FileUploadUrl = file.FileUploadUrl,
+                        };
+
+                        fileList.Add(fileItem);
+                        fileListDetail.Add(new HomeWorkFileDetail()
+                        {
+                            FileUploadDetailId = Guid.NewGuid(),
+                            HomeWorkId = answerReq.HomeWorkId,
+                            FileUploadId = fileItem.FileUploadId,
+                        });
+                    }
+
+                    _db.FileUpload.AddRange(fileList);
+                    _db.HomeWorkFileDetail.AddRange(fileListDetail);
+                    result.Add("fileList", fileList);
+                    //result.Add("fileDetail", fileListDetail);
                 }
 
                 await _db.SaveChangesAsync();
