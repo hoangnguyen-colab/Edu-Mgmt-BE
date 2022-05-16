@@ -92,13 +92,14 @@ namespace Edu_Mgmt_BE.Utils
                 {
                     return ErrorHandler.BadRequestResponse(Message.TeacherPhoneEmpty);
                 }
-               
-                var teacher_result = _db.Teacher
-                    .Where(item => item.TeacherPhone.Equals(teacher.TeacherPhone.Trim()))
-                    .FirstOrDefault();
-                if (teacher_result != null)
+
+                var account_detail = await _db.SystemUser
+                    .Where(x => x.UserPhone.Equals(teacher.TeacherPhone))
+                    .FirstOrDefaultAsync();
+
+                if (account_detail != null)
                 {
-                    return ErrorHandler.BadRequestResponse(Message.TeacherPhoneExist);
+                    return ErrorHandler.BadRequestResponse(Message.UserAccountExist);
                 }
 
                 teacher.TeacherId = Guid.NewGuid();

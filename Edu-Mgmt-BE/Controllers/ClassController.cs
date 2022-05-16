@@ -26,7 +26,7 @@ namespace Edu_Mgmt_BE.Controllers
         private readonly EduManagementContext _db;
         private const string TeacherClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId	AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) as HomeWorkCount FROM Class WHERE Class.TeacherId = @teacherId";
         private const string TeacherClassQuerySearch = "SELECT DISTINCT Class.*, (SELECT DISTINCT count(*) FROM ClassDetail WHERE ClassDetail.ClassId = Class.ClassId) as StudentCount FROM Class WHERE Class.TeacherId = @teacherId AND CHARINDEX(@txtSeach, ClassName) > 0";
-        private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT COUNT(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) AS HomeWorkCount FROM Class, ClassDetail, Student WHERE ClassDetail.StudentId = Student.StudentId AND Class.ClassId = ClassDetail.ClassId AND Student.StudentName = @studentName AND Student.StudentDOB = @studentDob AND Student.StudentPhone = @studentPhone";
+        private const string StudentClassQuery = "SELECT DISTINCT Class.*, (SELECT DISTINCT COUNT(*) FROM HomeWorkClassDetail, HomeWork WHERE HomeWorkClassDetail.ClassId = Class.ClassId AND HomeWork.HomeWorkId = HomeWorkClassDetail.HomeWorkId AND HomeWork.HomeWorkStatus = 1) AS HomeWorkCount FROM Class, ClassDetail, Student WHERE ClassDetail.StudentId = Student.StudentId AND Class.ClassId = ClassDetail.ClassId AND Student.StudentPhone = @studentPhone";
         private const string StudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId";
         private const string FindStudentInClassQuery = "SELECT Student.* FROM Class, ClassDetail, Student WHERE Class.ClassId = @classId AND ClassDetail.ClassId = Class.ClassId AND ClassDetail.StudentId = Student.StudentId AND Student.StudentId = @studentId";
         private const string GetClassRequestByTeacher = "SELECT cr.* FROM ClassRequest cr INNER JOIN Class c ON c.ClassId = cr.ClassId AND c.status = 1 INNER JOIN Teacher t ON t.TeacherId = c.TeacherId WHERE t.TeacherId = @teacherId";
@@ -81,12 +81,10 @@ namespace Edu_Mgmt_BE.Controllers
                 else if (role == RoleType.STUDENT)
                 {
                     SystemUser systemUser = Helper.getStudentDetail(HttpContext);
-                    var paramName = new SqlParameter("@studentName", systemUser.Fullname);
-                    var paramDob = new SqlParameter("@studentDob", systemUser.UserDob);
                     var paramPhone = new SqlParameter("@studentPhone", systemUser.UserPhone);
 
                     records = await _db.Class
-                            .FromSqlRaw(StudentClassQuery, paramName, paramDob, paramPhone)
+                            .FromSqlRaw(StudentClassQuery, paramPhone)
                             .OrderByDescending(x => x.ClassName)
                             .Where(x => x.ClassStatus == classStatus)
                             .ToListAsync();
@@ -263,6 +261,8 @@ namespace Edu_Mgmt_BE.Controllers
                         .FromSqlRaw(StudentInClassQuery, paramId)
                         .OrderByDescending(x => x.StudentName)
                         .ToList();
+
+            var teacher = await _db.Teacher.FindAsync(classResult.TeacherId);
 
             result.Add("class", classResult);
             result.Add("students", studentList);
@@ -485,7 +485,7 @@ namespace Edu_Mgmt_BE.Controllers
                     classDetail.Add(new ClassDetail()
                     {
                         ClassDetailId = Guid.NewGuid(),
-                        ClassId = request.classId,
+                        ClassId = (Guid)request.classId,
                         StudentId = student_result.StudentId,
                     });
                 }
