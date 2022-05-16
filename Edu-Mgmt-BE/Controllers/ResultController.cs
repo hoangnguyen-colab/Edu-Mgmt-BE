@@ -132,7 +132,8 @@ namespace Edu_Mgmt_BE.Controllers
                 result_check.ModifyDate = DateTime.Now;
                 result_check.ResultContent = req.ResultContent;
 
-                //await _db.SaveChangesAsync();
+                _db.Result.Add(result_check);
+                await _db.SaveChangesAsync();
 
                 res.Success = true;
                 res.Data = result_check;
